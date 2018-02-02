@@ -1,6 +1,7 @@
 {
   "name": "dwnload/wp-rest-api-cache",
   "description": "",
+  "type": "wordpress-plugin",
   "version": "0.1",
   "license": "MIT",
   "authors": [
