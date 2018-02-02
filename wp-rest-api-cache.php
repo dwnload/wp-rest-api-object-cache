@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WP REST API Cache
- * Description: Enable caching for WordPress' REST API and increase speed of your application.
+ * Description: Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
  * Author: Austin Passy
  * Author URI: http://github.com/thefrosty
  * Version: 0.1

@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/packagist/l/dwnload/wp-rest-api-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
 [![Build Status](https://travis-ci.org/dwnload/WpSettingsApi.svg?branch=master)](https://travis-ci.org/dwnload/WpSettingsApi)
 
-It's a PHP class wrapper for handling WordPres.
+Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
 
 ## Package Installation (via Composer)
 
