@@ -1,4 +1,4 @@
-# WordPress REST API Cache
+# WordPress REST API Object Cache
 
 [![PHP from Packagist](https://img.shields.io/packagist/php-v/dwnload/wp-rest-api-cache.svg)]()
 [![Latest Stable Version](https://img.shields.io/packagist/v/dwnload/wp-rest-api-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
@@ -15,7 +15,7 @@ To install this package, edit your `composer.json` file:
 ```js
 {
     "require": {
-        "dwnload/wp-rest-api-cache": "0.1"
+        "dwnload/wp-rest-api-object-cache": "0.1"
     }
 }
 ```
