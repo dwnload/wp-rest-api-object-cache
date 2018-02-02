@@ -64,10 +64,10 @@ final class WpRestApiCache {
      *
      * @return WpRestApiCache
      */
-    public function initiateWpHooksInterfaces() : WpRestApiCache {
+    public function initiateWpHooks() : WpRestApiCache {
         $wp_hooks = self::WP_HOOKS;
 
-        array_walk( $wp_hooks, function( $value, $class ) {
+        array_walk( $wp_hooks, function( $class ) {
             $this->init->add( new $class() );
         } );
 
