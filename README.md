@@ -1,10 +1,10 @@
 # WordPress REST API Object Cache
 
-[![PHP from Packagist](https://img.shields.io/packagist/php-v/dwnload/wp-rest-api-cache.svg)]()
-[![Latest Stable Version](https://img.shields.io/packagist/v/dwnload/wp-rest-api-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
-[![Total Downloads](https://img.shields.io/packagist/dt/dwnload/wp-rest-api-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
-[![License](https://img.shields.io/packagist/l/dwnload/wp-rest-api-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
-[![Build Status](https://travis-ci.org/dwnload/WpSettingsApi.svg?branch=master)](https://travis-ci.org/dwnload/WpSettingsApi)
+[![PHP from Packagist](https://img.shields.io/packagist/php-v/dwnload/wp-rest-api-object-cache.svg)]()
+[![Latest Stable Version](https://img.shields.io/packagist/v/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
+[![Total Downloads](https://img.shields.io/packagist/dt/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
+[![License](https://img.shields.io/packagist/l/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-cache)
+[![Build Status](https://travis-ci.org/dwnload/wp-rest-api-object-cache.svg?branch=master)](https://travis-ci.org/dwnload/WpSettingsApi)
 
 Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
 
@@ -15,7 +15,7 @@ To install this package, edit your `composer.json` file:
 ```js
 {
     "require": {
-        "dwnload/wp-rest-api-object-cache": "0.1"
+        "dwnload/wp-rest-api-object-cache": "0.2"
     }
 }
 ```
