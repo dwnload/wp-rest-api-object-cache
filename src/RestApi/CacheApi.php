@@ -1,4 +1,4 @@
-<?php
+<?php declare( strict_types=1 );
 
 namespace Dwnload\WpRestApi\RestApi;
 
@@ -6,7 +6,7 @@ use WP_REST_Request;
 use WP_REST_Server;
 
 /**
- * Class Api
+ * Trait CacheApi
  * @package Dwnload\WpRestApi\RestApi
  */
 trait CacheApi {
@@ -33,16 +33,16 @@ trait CacheApi {
     ) : string {
         static $key;
 
-        if ( is_string( $key ) ) {
+        if ( \is_string( $key ) ) {
             return $key;
         }
 
         if ( ! ( $server instanceof WP_REST_Server ) ) {
-            $server = rest_get_server();
+            $server = \rest_get_server();
         }
 
         if ( ! ( $request instanceof WP_REST_Request ) ) {
-            if ( is_string( $url ) ) {
+            if ( \is_string( $url ) ) {
                 $request = WP_REST_Request::from_url( $url );
             } else {
                 $request = new WP_REST_Request();
@@ -50,10 +50,10 @@ trait CacheApi {
         }
 
         // Be sure to remove our added cache refresh & cache delete queries.
-        $uri = remove_query_arg( [ RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH ], $request_uri );
+        $uri = \remove_query_arg( [ RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH ], $request_uri );
 
-        $key = filter_var(
-            apply_filters(
+        $key = \filter_var(
+            \apply_filters(
                 RestDispatch::FILTER_API_KEY,
                 $uri,
                 $server,
@@ -71,8 +71,8 @@ trait CacheApi {
      * @return string
      */
     protected function getCacheGroup() : string {
-        return filter_var(
-            apply_filters(
+        return \filter_var(
+            \apply_filters(
                 RestDispatch::FILTER_API_GROUP,
                 RestDispatch::CACHE_GROUP
             ),
@@ -87,7 +87,7 @@ trait CacheApi {
      * @return bool Returns TRUE on success or FALSE on failure.
      */
     protected function wpCacheFlush() : bool {
-        return wp_cache_flush();
+        return \wp_cache_flush();
     }
 
     /**
@@ -100,7 +100,7 @@ trait CacheApi {
      * @return bool Returns TRUE on success or FALSE on failure.
      */
     protected function wpCacheDeleteByKey( string $key ) : bool {
-        return wp_cache_delete( $key, $this->getCacheGroup() );
+        return \wp_cache_delete( $key, $this->getCacheGroup() );
     }
 
     /**
@@ -111,6 +111,6 @@ trait CacheApi {
      * @return string
      */
     protected function getRequestUri( string $route = null ) : string {
-        return filter_var( $route ?? $_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING );
+        return \filter_var( $route ?? $_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING );
     }
 }

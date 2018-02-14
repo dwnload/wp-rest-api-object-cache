@@ -1,4 +1,4 @@
-<?php
+<?php declare( strict_types=1 );
 
 namespace Dwnload\WpRestApi;
 
@@ -55,7 +55,7 @@ final class WpRestApiCache {
      * @return WpHooksInterface
      */
     public function getWpHook( string $class ) : WpHooksInterface {
-        $key = array_search( $class, array_column( $this->init->plugin_components, null ) );
+        $key = \array_search( $class, \array_column( $this->init->plugin_components, null ) );
         return $this->init->plugin_components[ $key ];
     }
 
@@ -67,7 +67,7 @@ final class WpRestApiCache {
     public function initiateWpHooks() : WpRestApiCache {
         $wp_hooks = self::WP_HOOKS;
 
-        array_walk( $wp_hooks, function( $class ) {
+        \array_walk( $wp_hooks, function( $class ) {
             $this->init->add( new $class() );
         } );
 

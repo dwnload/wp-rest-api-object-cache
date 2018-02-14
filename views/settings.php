@@ -9,10 +9,10 @@ use Dwnload\WpRestApi\WpAdmin\Settings;
 
 /** @var $this Admin */
 if ( ! ( $this instanceof Admin ) ) {
-    wp_die( 'Please don\'t load this file outside the Admin object.' );
+    wp_die( sprintf( 'Please don\'t load this file outside of <code>%s.</code>', Admin::class ) );
 }
 
-$reflection = new \ReflectionObject( $this );
+$reflection = new ReflectionObject( $this );
 $cache_url = $reflection->getMethod( 'getEmptyCacheUrl' );
 $cache_url->setAccessible( true );
 $options = $this->getOptions();
