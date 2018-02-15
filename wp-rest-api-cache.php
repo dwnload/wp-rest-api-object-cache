@@ -8,7 +8,7 @@
  * Requires at least: 4.9
  * Tested up to: 4.9
  * Requires PHP: 7.0
- * Plugin URI: https://github.com/thefrosty/wp-rest-api-object-cache
+ * Plugin URI: https://github.com/dwnload/wp-rest-api-object-cache
  */
 
 defined( 'ABSPATH' ) || exit;

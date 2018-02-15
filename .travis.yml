@@ -1,0 +1,26 @@
+language: php
+
+php:
+  - '7.1'
+  - '7.0'
+
+install: composer install
+
+script: composer test
+
+after_script:
+  - composer export-coverage
+
+cache:
+  directories:
+    - vendor
+
+branches:
+  only:
+    - master
+    - develop
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
