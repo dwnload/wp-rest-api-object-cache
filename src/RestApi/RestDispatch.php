@@ -1,4 +1,4 @@
-<?php
+<?php declare( strict_types=1 );
 
 namespace Dwnload\WpRestApi\RestApi;
 
@@ -85,7 +85,10 @@ class RestDispatch implements WpHooksInterface {
         }
 
         // Cache is refreshed (cached below).
-        $refresh = filter_var( $request->get_param( self::QUERY_CACHE_REFRESH ), FILTER_VALIDATE_BOOLEAN );
+        $refresh = $this->filter_var(
+            $request->get_param( self::QUERY_CACHE_REFRESH ),
+            FILTER_VALIDATE_BOOLEAN
+        );
         if ( $refresh ) {
             $server->send_header(
                 self::CACHE_HEADER,
@@ -108,7 +111,7 @@ class RestDispatch implements WpHooksInterface {
             );
         }
 
-        $skip = filter_var(
+        $skip = $this->filter_var(
             apply_filters( self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request ),
             FILTER_VALIDATE_BOOLEAN
         );
@@ -268,6 +271,6 @@ class RestDispatch implements WpHooksInterface {
      */
     private function validateQueryParam( WP_REST_Request $request, string $key ) : bool {
         return array_key_exists( $key, $request->get_query_params() ) &&
-            filter_var( $request->get_query_params()[ $key ], FILTER_VALIDATE_INT ) === 1;
+            $this->filter_var( $request->get_query_params()[ $key ], FILTER_VALIDATE_INT ) === 1;
     }
 }
