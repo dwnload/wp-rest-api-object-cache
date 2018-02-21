@@ -2,6 +2,9 @@
 
 namespace Dwnload\WpRestApi\RestApi;
 
+use function Dwnload\WpRestApi\Helpers\{
+    filter_var_bool, filter_var_int
+};
 use Dwnload\WpRestApi\WpRestApiCache;
 use TheFrosty\WP\Utils\WpHooksInterface;
 use WP_Error;
@@ -85,10 +88,7 @@ class RestDispatch implements WpHooksInterface {
         }
 
         // Cache is refreshed (cached below).
-        $refresh = $this->filter_var(
-            $request->get_param( self::QUERY_CACHE_REFRESH ),
-            FILTER_VALIDATE_BOOLEAN
-        );
+        $refresh = filter_var_bool( $request->get_param( self::QUERY_CACHE_REFRESH ) );
         if ( $refresh ) {
             $server->send_header(
                 self::CACHE_HEADER,
@@ -111,9 +111,8 @@ class RestDispatch implements WpHooksInterface {
             );
         }
 
-        $skip = $this->filter_var(
-            apply_filters( self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request ),
-            FILTER_VALIDATE_BOOLEAN
+        $skip = filter_var_bool(
+            apply_filters( self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request )
         );
         if ( $skip ) {
             $server->send_header(
@@ -264,13 +263,15 @@ class RestDispatch implements WpHooksInterface {
     }
 
     /**
-     * Validate
+     * Validate the HTTP query param.
+     *
      * @param WP_REST_Request $request
      * @param string $key
+     *
      * @return bool
      */
     private function validateQueryParam( WP_REST_Request $request, string $key ) : bool {
         return array_key_exists( $key, $request->get_query_params() ) &&
-            $this->filter_var( $request->get_query_params()[ $key ], FILTER_VALIDATE_INT ) === 1;
+            filter_var_int( $request->get_query_params()[ $key ] ) === 1;
     }
 }

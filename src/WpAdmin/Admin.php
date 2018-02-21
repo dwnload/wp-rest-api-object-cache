@@ -2,6 +2,7 @@
 
 namespace Dwnload\WpRestApi\WpAdmin;
 
+use function Dwnload\WpRestApi\Helpers\filter_var_int;
 use Dwnload\WpRestApi\RestApi\CacheApi;
 use Dwnload\WpRestApi\RestApi\RestDispatch;
 use Dwnload\WpRestApi\WpRestApiCache;
@@ -116,7 +117,7 @@ class Admin implements WpHooksInterface {
         if ( ! empty( $_REQUEST[ self::NONCE_NAME ] ) &&
             \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], self::NONCE_ACTION ) &&
             ! empty( $_GET[ self::NOTICE ] ) &&
-            $this->filter_var( $_GET[ self::NOTICE ], FILTER_VALIDATE_INT ) === 1
+            filter_var_int( $_GET[ self::NOTICE ] ) === 1
         ) {
             $message = \esc_html__( 'The cache has been successfully cleared.', 'wp-rest-api-cache' );
             echo "<div class='notice updated is-dismissible'><p>{$message}</p></div>"; // PHPCS: XSS OK.
@@ -158,7 +159,7 @@ class Admin implements WpHooksInterface {
             \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], 'rest_cache_options' )
         ) {
             if ( ! empty( $_GET['rest_cache_empty'] ) &&
-                $this->filter_var( $_GET['rest_cache_empty'], FILTER_VALIDATE_INT ) === 1
+                filter_var_int( $_GET['rest_cache_empty'] ) === 1
             ) {
                 if ( $this->wpCacheFlush() ) {
                     $type = 'updated';

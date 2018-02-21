@@ -2,6 +2,7 @@
 
 namespace Dwnload\WpRestApi\RestApi;
 
+use function Dwnload\WpRestApi\Helpers\filter_var_string;
 use WP_REST_Request;
 use WP_REST_Server;
 
@@ -22,7 +23,6 @@ trait CacheApi {
      * @param WP_REST_Server|null $server An instance of WP_REST_Server
      * @param WP_REST_Request|null $request An instance of WP_REST_Request
      * @param string|null $url Full URL to pass to WP_REST_Request
-     *
      * @return string
      */
     protected function getCacheKey(
@@ -51,15 +51,7 @@ trait CacheApi {
 
         // Be sure to remove our added cache refresh & cache delete queries.
         $uri = \remove_query_arg( [ RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH ], $request_uri );
-
-        $key = $this->filter_var(
-            \apply_filters(
-                RestDispatch::FILTER_API_KEY,
-                $uri,
-                $server,
-                $request
-            )
-        );
+        $key = filter_var_string( \apply_filters( RestDispatch::FILTER_API_KEY, $uri, $server, $request ) );
 
         return $key;
     }
@@ -70,12 +62,7 @@ trait CacheApi {
      * @return string
      */
     protected function getCacheGroup() : string {
-        return $this->filter_var(
-            \apply_filters(
-                RestDispatch::FILTER_API_GROUP,
-                RestDispatch::CACHE_GROUP
-            )
-        );
+        return filter_var_string( \apply_filters( RestDispatch::FILTER_API_GROUP, RestDispatch::CACHE_GROUP ) );
     }
 
     /**
@@ -92,9 +79,7 @@ trait CacheApi {
      * Empty all cache.
      *
      * @uses wp_cache_delete()
-     *
      * @param string $key The key under which to store the value.
-     *
      * @return bool Returns TRUE on success or FALSE on failure.
      */
     protected function wpCacheDeleteByKey( string $key ) : bool {
@@ -109,18 +94,6 @@ trait CacheApi {
      * @return string
      */
     protected function getRequestUri( string $route = null ) : string {
-        return $this->filter_var( $route ?? $_SERVER['REQUEST_URI'] );
-    }
-
-    /**
-     * Filters a variable with a specified filter.
-     * @link http://php.net/manual/en/function.filter-var.php
-     * @param mixed $variable
-     * @param int $filter
-     *
-     * @return mixed
-     */
-    private function filter_var( $variable, $filter = FILTER_SANITIZE_STRING ) {
-        return \filter_var( $variable, $filter );
+        return filter_var_string( $route ?? $_SERVER['REQUEST_URI'] );
     }
 }
