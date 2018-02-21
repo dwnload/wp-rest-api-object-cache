@@ -116,7 +116,7 @@ class Admin implements WpHooksInterface {
         if ( ! empty( $_REQUEST[ self::NONCE_NAME ] ) &&
             \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], self::NONCE_ACTION ) &&
             ! empty( $_GET[ self::NOTICE ] ) &&
-            \filter_var( $_GET[ self::NOTICE ], FILTER_VALIDATE_INT ) === 1
+            $this->filter_var( $_GET[ self::NOTICE ], FILTER_VALIDATE_INT ) === 1
         ) {
             $message = \esc_html__( 'The cache has been successfully cleared.', 'wp-rest-api-cache' );
             echo "<div class='notice updated is-dismissible'><p>{$message}</p></div>"; // PHPCS: XSS OK.
@@ -158,7 +158,7 @@ class Admin implements WpHooksInterface {
             \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], 'rest_cache_options' )
         ) {
             if ( ! empty( $_GET['rest_cache_empty'] ) &&
-                \filter_var( $_GET['rest_cache_empty'], FILTER_VALIDATE_INT ) === 1
+                $this->filter_var( $_GET['rest_cache_empty'], FILTER_VALIDATE_INT ) === 1
             ) {
                 if ( $this->wpCacheFlush() ) {
                     $type = 'updated';
