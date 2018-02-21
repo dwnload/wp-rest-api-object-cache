@@ -52,14 +52,13 @@ trait CacheApi {
         // Be sure to remove our added cache refresh & cache delete queries.
         $uri = \remove_query_arg( [ RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH ], $request_uri );
 
-        $key = \filter_var(
+        $key = $this->filter_var(
             \apply_filters(
                 RestDispatch::FILTER_API_KEY,
                 $uri,
                 $server,
                 $request
-            ),
-            FILTER_SANITIZE_STRING
+            )
         );
 
         return $key;
@@ -71,12 +70,11 @@ trait CacheApi {
      * @return string
      */
     protected function getCacheGroup() : string {
-        return \filter_var(
+        return $this->filter_var(
             \apply_filters(
                 RestDispatch::FILTER_API_GROUP,
                 RestDispatch::CACHE_GROUP
-            ),
-            FILTER_SANITIZE_STRING
+            )
         );
     }
 
@@ -111,6 +109,18 @@ trait CacheApi {
      * @return string
      */
     protected function getRequestUri( string $route = null ) : string {
-        return \filter_var( $route ?? $_SERVER['REQUEST_URI'], FILTER_SANITIZE_STRING );
+        return $this->filter_var( $route ?? $_SERVER['REQUEST_URI'] );
+    }
+
+    /**
+     * Filters a variable with a specified filter.
+     * @link http://php.net/manual/en/function.filter-var.php
+     * @param mixed $variable
+     * @param int $filter
+     *
+     * @return mixed
+     */
+    private function filter_var( $variable, $filter = FILTER_SANITIZE_STRING ) {
+        return \filter_var( $variable, $filter );
     }
 }
