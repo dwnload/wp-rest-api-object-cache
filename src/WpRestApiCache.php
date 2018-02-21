@@ -65,12 +65,10 @@ final class WpRestApiCache {
      * @return WpRestApiCache
      */
     public function initiateWpHooks() : WpRestApiCache {
-        $wp_hooks = self::WP_HOOKS;
-
+        $wp_hooks = $this->getWpHookClasses();
         \array_walk( $wp_hooks, function( $class ) {
             $this->init->add( new $class() );
         } );
-
         return $this;
     }
 
@@ -81,5 +79,14 @@ final class WpRestApiCache {
      */
     public function getInit() : Init {
         return $this->init;
+    }
+
+    /**
+     * Gets the array of WpHooksInterface objects.
+     *
+     * @return WpHooksInterface[]
+     */
+    private function getWpHookClasses() : array {
+        return apply_filters( self::FILTER_PREFIX . 'wp_hooks', self::WP_HOOKS );
     }
 }
