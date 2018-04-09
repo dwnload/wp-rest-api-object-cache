@@ -14,7 +14,7 @@
   ],
   "require": {
     "composer/installers": "~1.0",
-    "thefrosty/wp-utilities": "^0.2.2",
+    "thefrosty/wp-utilities": "^1.1.1",
     "php": ">=7.0.4"
   },
   "require-dev": {
@@ -29,7 +29,7 @@
     "post-update-cmd": [
       "@phpcs"
     ],
-    "phpcs": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs",
+    "phpcs": "./vendor/bin/phpcs --standard=PSR2 --extensions=php src",
     "test": "./vendor/bin/phpunit --colors",
     "export-coverage": "test-reporter"
   },

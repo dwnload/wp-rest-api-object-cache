@@ -8,7 +8,7 @@
 
 namespace Dwnload\WpRestApi\Tests;
 
-use TheFrosty\WP\Utils\Init;
+use Dwnload\WpRestApi\RestApi\RestDispatch;
 use Dwnload\WpRestApi\WpRestApiCache;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +16,8 @@ use PHPUnit\Framework\TestCase;
  * Class TestWpRestApiCache
  * @package Dwnload\WpRestApi\Tests
  */
-class TestWpRestApiCache extends TestCase {
+class TestWpRestApiCache extends TestCase
+{
 
     /**
      * @var WpRestApiCache $wp_rest_api_cache
@@ -26,15 +27,17 @@ class TestWpRestApiCache extends TestCase {
     /**
      * Setup.
      */
-    public function setUp() {
-        $this->wp_rest_api_cache = new WpRestApiCache( new Init() );
+    public function setUp()
+    {
+        $this->wp_rest_api_cache = new WpRestApiCache();
     }
 
     /**
-     * Test getInit.
+     * Test getRestDispatch.
      */
-    public function testGetInit() {
-        $init = $this->wp_rest_api_cache->getInit();
-        $this->assertInstanceOf( Init::class, $init );
+    public function testGetRestDispatch()
+    {
+        $rest_dispatch = $this->wp_rest_api_cache::getRestDispatch();
+        $this->assertInstanceOf(RestDispatch::class, $rest_dispatch);
     }
 }

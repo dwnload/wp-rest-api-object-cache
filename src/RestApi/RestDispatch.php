@@ -1,12 +1,12 @@
-<?php declare( strict_types=1 );
+<?php declare(strict_types=1);
 
 namespace Dwnload\WpRestApi\RestApi;
 
-use function Dwnload\WpRestApi\Helpers\{
-    filter_var_bool, filter_var_int
-};
+use function Dwnload\WpRestApi\Helpers\filter_var_bool;
+use function Dwnload\WpRestApi\Helpers\filter_var_int;
 use Dwnload\WpRestApi\WpRestApiCache;
-use TheFrosty\WP\Utils\WpHooksInterface;
+use TheFrosty\WpUtilities\Plugin\HooksTrait;
+use TheFrosty\WpUtilities\Plugin\WpHooksInterface;
 use WP_Error;
 use WP_Http;
 use WP_HTTP_Response;
@@ -18,9 +18,10 @@ use WP_REST_Server;
  * Class RestDispatch
  * @package Dwnload\WpRestApi\RestApi
  */
-class RestDispatch implements WpHooksInterface {
+class RestDispatch implements WpHooksInterface
+{
 
-    use CacheApi;
+    use CacheApiTrait, HooksTrait;
 
     const ACTION_CACHE_SKIPPED = WpRestApiCache::FILTER_PREFIX . 'skipped';
     const CACHE_GROUP = 'rest_api';
@@ -43,9 +44,10 @@ class RestDispatch implements WpHooksInterface {
     /**
      * Add class hooks.
      */
-    public function addHooks() {
-        add_filter( 'rest_pre_dispatch', [ $this, 'preDispatch' ], 10, 3 );
-        add_filter( 'rest_post_dispatch', [ $this, 'postDispatch' ], 10, 3 );
+    public function addHooks()
+    {
+        $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
+        $this->addFilter('rest_post_dispatch', [$this, 'postDispatch'], 10, 3);
     }
 
     /**
@@ -58,41 +60,42 @@ class RestDispatch implements WpHooksInterface {
      *
      * @return mixed Response
      */
-    public function preDispatch( $result, WP_REST_Server $server, WP_REST_Request $request ) {
+    public function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
+    {
         $request_uri = $request->get_route() ?? $this->getRequestUri();
         $group = $this->getCacheGroup();
-        $key = $this->getCacheKey( $request_uri, $server, $request );
+        $key = $this->getCacheKey($request_uri, $server, $request);
 
         // Don't cache non-readable (GET) methods.
-        if ( $request->get_method() !== WP_REST_Server::READABLE ) {
+        if ($request->get_method() !== WP_REST_Server::READABLE) {
             return $result;
         }
 
-        $this->sendHeaders( $request_uri, $server, $request );
+        $this->sendHeaders($request_uri, $server, $request);
 
         // Delete the cache.
-        if ( $this->validateQueryParam( $request, self::QUERY_CACHE_DELETE ) ) {
+        if ($this->validateQueryParam($request, self::QUERY_CACHE_DELETE)) {
             // Force delete
-            if ( $this->validateQueryParam( $request, self::QUERY_CACHE_FORCE_DELETE ) ) {
-                if ( $this->wpCacheDeleteByKey( $key ) ) {
-                    $server->send_header( self::CACHE_HEADER_DELETE, 'true' );
+            if ($this->validateQueryParam($request, self::QUERY_CACHE_FORCE_DELETE)) {
+                if ($this->wpCacheDeleteByKey($key)) {
+                    $server->send_header(self::CACHE_HEADER_DELETE, 'true');
 
-                    return $this->getCachedResult( $server, $request, $key, $group, true );
+                    return $this->getCachedResult($server, $request, $key, $group, true);
                 }
             } else {
-                $server->send_header( self::CACHE_HEADER_DELETE, 'soft' );
-                $this->dispatchShutdownAction( $key );
+                $server->send_header(self::CACHE_HEADER_DELETE, 'soft');
+                $this->dispatchShutdownAction($key);
 
-                return $this->getCachedResult( $server, $request, $key, $group );
+                return $this->getCachedResult($server, $request, $key, $group);
             }
         }
 
         // Cache is refreshed (cached below).
-        $refresh = filter_var_bool( $request->get_param( self::QUERY_CACHE_REFRESH ) );
-        if ( $refresh ) {
+        $refresh = filter_var_bool($request->get_param(self::QUERY_CACHE_REFRESH));
+        if ($refresh) {
             $server->send_header(
                 self::CACHE_HEADER,
-                esc_attr_x(
+                \esc_attr_x(
                     'refreshed',
                     'When the wp-api cache is skipped. This is the header value.',
                     'wp-rest-api-cache'
@@ -103,7 +106,7 @@ class RestDispatch implements WpHooksInterface {
         } else {
             $server->send_header(
                 self::CACHE_HEADER,
-                esc_attr_x(
+                \esc_attr_x(
                     'cached',
                     'When rest_cache is cached. This is the header value.',
                     'wp-rest-api-cache'
@@ -112,12 +115,12 @@ class RestDispatch implements WpHooksInterface {
         }
 
         $skip = filter_var_bool(
-            apply_filters( self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request )
+            \apply_filters(self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request)
         );
-        if ( $skip ) {
+        if ($skip) {
             $server->send_header(
                 self::CACHE_HEADER,
-                esc_attr_x(
+                \esc_attr_x(
                     'skipped',
                     'When rest_cache is skipped. This is the header value.',
                     'wp-rest-api-cache'
@@ -131,12 +134,12 @@ class RestDispatch implements WpHooksInterface {
              * @param WP_REST_Server $server Server instance.
              * @param WP_REST_Request $request Request used to generate the response.
              */
-            do_action( self::ACTION_CACHE_SKIPPED, $result, $server, $request );
+            \do_action(self::ACTION_CACHE_SKIPPED, $result, $server, $request);
 
             return $result;
         }
 
-        return $this->getCachedResult( $server, $request, $key, $group );
+        return $this->getCachedResult($server, $request, $key, $group);
     }
 
     /**
@@ -148,31 +151,32 @@ class RestDispatch implements WpHooksInterface {
      *
      * @return WP_REST_Response
      */
-    public function postDispatch( $response, WP_REST_Server $server, WP_REST_Request $request ) : WP_REST_Response {
+    public function postDispatch($response, WP_REST_Server $server, WP_REST_Request $request) : WP_REST_Response
+    {
         $request_uri = $this->getRequestUri();
-        $key = $this->getCacheKey( $request_uri, $server, $request );
+        $key = $this->getCacheKey($request_uri, $server, $request);
 
         // Don't cache WP_Error objects.
-        if ( $response instanceof WP_Error ) {
-            $this->wpCacheDeleteByKey( $key );
+        if ($response instanceof WP_Error) {
+            $this->wpCacheDeleteByKey($key);
 
-            return rest_ensure_response( $response );
+            return \rest_ensure_response($response);
         }
 
-        $allowed_cache_status = apply_filters( self::FILTER_ALLOWED_CACHE_STATUS, [ WP_Http::OK ] );
-        if ( ! in_array( $response->get_status(), $allowed_cache_status, true ) ) {
+        $allowed_cache_status = \apply_filters(self::FILTER_ALLOWED_CACHE_STATUS, [WP_Http::OK]);
+        if (! \in_array($response->get_status(), $allowed_cache_status, true)) {
             $server->send_header(
                 self::CACHE_HEADER,
-                esc_attr_x(
+                \esc_attr_x(
                     'incorrect-status',
                     'When rest_cache is skipped. This is the header value.',
                     'wp-rest-api-cache'
                 )
             );
-            $this->wpCacheDeleteByKey( $key );
+            $this->wpCacheDeleteByKey($key);
         }
 
-        return rest_ensure_response( $response );
+        return \rest_ensure_response($response);
     }
 
     /**
@@ -193,11 +197,11 @@ class RestDispatch implements WpHooksInterface {
         string $group,
         bool $force = false
     ) {
-        $result = wp_cache_get( $key, $group, $force );
-        if ( $result === false ) {
-            $result = $this->dispatchRequest( $server, $request );
-            $expire = absint( apply_filters( self::FILTER_CACHE_EXPIRE, ( MINUTE_IN_SECONDS * 10 ) ) );
-            wp_cache_set( $key, $result, $group, $expire );
+        $result = \wp_cache_get($key, $group, $force);
+        if ($result === false) {
+            $result = $this->dispatchRequest($server, $request);
+            $expire = \absint(\apply_filters(self::FILTER_CACHE_EXPIRE, (MINUTE_IN_SECONDS * 10)));
+            \wp_cache_set($key, $result, $group, $expire);
 
             return $result;
         }
@@ -219,7 +223,7 @@ class RestDispatch implements WpHooksInterface {
         WP_REST_Request $request,
         WP_REST_Response $response = null
     ) {
-        $headers = apply_filters(
+        $headers = \apply_filters(
             self::FILTER_CACHE_HEADERS,
             [],
             $request_uri,
@@ -227,8 +231,8 @@ class RestDispatch implements WpHooksInterface {
             $request,
             $response
         );
-        if ( ! empty( $headers ) ) {
-            $server->send_headers( $headers );
+        if (! empty($headers)) {
+            $server->send_headers($headers);
         }
     }
 
@@ -240,13 +244,14 @@ class RestDispatch implements WpHooksInterface {
      *
      * @return WP_REST_Response
      */
-    private function dispatchRequest( WP_REST_Server $server, WP_REST_Request $request ) : WP_REST_Response {
-        $request->set_param( self::QUERY_CACHE_REFRESH, true );
+    private function dispatchRequest(WP_REST_Server $server, WP_REST_Request $request) : WP_REST_Response
+    {
+        $request->set_param(self::QUERY_CACHE_REFRESH, true);
 
         // Don't filter the request of the dispatch, since we're in the filter right now.
-        remove_filter( 'rest_pre_dispatch', [ $this, 'preDispatch' ], 10 );
-        $results = $server->dispatch( $request );
-        add_filter( 'rest_pre_dispatch', [ $this, 'preDispatch' ], 10, 3 );
+        $this->removeFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10);
+        $results = $server->dispatch($request);
+        $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
 
         return $results;
     }
@@ -256,10 +261,11 @@ class RestDispatch implements WpHooksInterface {
      *
      * @param string $key
      */
-    private function dispatchShutdownAction( string $key ) {
-        add_action( 'shutdown', function() use ( $key ) {
-            call_user_func( [ $this, 'wpCacheDeleteByKey' ], $key );
-        } );
+    private function dispatchShutdownAction(string $key)
+    {
+        $this->addAction('shutdown', function () use ($key) {
+            \call_user_func([$this, 'wpCacheDeleteByKey'], $key);
+        });
     }
 
     /**
@@ -270,8 +276,9 @@ class RestDispatch implements WpHooksInterface {
      *
      * @return bool
      */
-    private function validateQueryParam( WP_REST_Request $request, string $key ) : bool {
-        return array_key_exists( $key, $request->get_query_params() ) &&
-            filter_var_int( $request->get_query_params()[ $key ] ) === 1;
+    private function validateQueryParam(WP_REST_Request $request, string $key) : bool
+    {
+        return \array_key_exists($key, $request->get_query_params()) &&
+            filter_var_int($request->get_query_params()[$key]) === 1;
     }
 }

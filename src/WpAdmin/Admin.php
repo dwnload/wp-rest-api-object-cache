@@ -1,17 +1,23 @@
-<?php declare( strict_types=1 );
+<?php declare(strict_types=1);
 
 namespace Dwnload\WpRestApi\WpAdmin;
 
 use function Dwnload\WpRestApi\Helpers\filter_var_int;
-use Dwnload\WpRestApi\RestApi\CacheApi;
+use Dwnload\WpRestApi\RestApi\CacheApiTrait;
 use Dwnload\WpRestApi\RestApi\RestDispatch;
 use Dwnload\WpRestApi\WpRestApiCache;
-use TheFrosty\WP\Utils\WpHooksInterface;
+use TheFrosty\WpUtilities\Plugin\HooksTrait;
+use TheFrosty\WpUtilities\Plugin\WpHooksInterface;
 use WP_Admin_Bar;
 
-class Admin implements WpHooksInterface {
+/**
+ * Class Admin
+ * @package Dwnload\WpRestApi\WpAdmin
+ */
+class Admin implements WpHooksInterface
+{
 
-    use CacheApi;
+    use CacheApiTrait, HooksTrait;
 
     const ACTION_REQUEST_FLUSH_CACHE = WpRestApiCache::FILTER_PREFIX . 'request_flush_cache';
     const ADMIN_ACTION = WpRestApiCache::FILTER_PREFIX . 'flush';
@@ -33,27 +39,29 @@ class Admin implements WpHooksInterface {
     /**
      * Admin constructor.
      */
-    public function __construct() {
-        $this->settings = new Settings( [
+    public function __construct()
+    {
+        $this->settings = new Settings([
             Settings::LENGTH => 1,
             Settings::PERIOD => WEEK_IN_SECONDS,
-        ] );
+        ]);
     }
 
     /**
      * Add class hooks.
      */
-    public function addHooks() {
-        if ( \apply_filters( self::FILTER_SHOW_ADMIN, true ) ) {
-            if ( \apply_filters( self::FILTER_SHOW_ADMIN_MENU, true ) ) {
-                \add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+    public function addHooks()
+    {
+        if (\apply_filters(self::FILTER_SHOW_ADMIN, true)) {
+            if (\apply_filters(self::FILTER_SHOW_ADMIN_MENU, true)) {
+                $this->addAction('admin_menu', [$this, 'adminMenu']);
             } else {
-                \add_action( 'admin_action_' . self::ADMIN_ACTION, [ $this, 'admin_action' ] );
-                \add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+                $this->addAction('admin_action_' . self::ADMIN_ACTION, [$this, 'adminAction']);
+                $this->addAction('admin_notices', [$this, 'adminNotices']);
             }
 
-            if ( \apply_filters( self::FILTER_SHOW_ADMIN_BAR_MENU, true ) ) {
-                \add_action( 'admin_bar_menu', [ $this, 'admin_bar_menu' ], 999 );
+            if (\apply_filters(self::FILTER_SHOW_ADMIN_BAR_MENU, true)) {
+                $this->addAction('admin_bar_menu', [$this, 'adminBarMenu'], 999);
             }
         }
     }
@@ -61,14 +69,15 @@ class Admin implements WpHooksInterface {
     /**
      * Hook into the WordPress admin menu.
      */
-    public function admin_menu() {
+    public function adminMenu()
+    {
         \add_submenu_page(
             'options-general.php',
-            \esc_html__( 'WP REST API Cache', 'wp-rest-api-cache' ),
-            \esc_html__( 'REST API Cache', 'wp-rest-api-cache' ),
+            \esc_html__('WP REST API Cache', 'wp-rest-api-cache'),
+            \esc_html__('REST API Cache', 'wp-rest-api-cache'),
             'manage_options',
             self::MENU_SLUG,
-            [ $this, 'renderPage' ]
+            [$this, 'renderPage']
         );
     }
 
@@ -77,49 +86,55 @@ class Admin implements WpHooksInterface {
      *
      * @param WP_Admin_Bar $wp_admin_bar WP_Admin_Bar object.
      */
-    public function admin_bar_menu( WP_Admin_Bar $wp_admin_bar ) {
+    public function adminBarMenu(WP_Admin_Bar $wp_admin_bar)
+    {
         $args = [
             'id' => WpRestApiCache::ID,
-            'title' => \esc_html__( 'REST API Cache', 'wp-rest-api-cache' ),
+            'title' => \esc_html__('REST API Cache', 'wp-rest-api-cache'),
         ];
 
-        $wp_admin_bar->add_node( $args );
-        $wp_admin_bar->add_menu( [
+        $wp_admin_bar->add_node($args);
+        $wp_admin_bar->add_menu([
             'parent' => WpRestApiCache::ID,
             'id' => self::MENU_ID,
-            'title' => \esc_html__( 'Empty all cache', 'wp-rest-api-cache' ),
-            'href' => \esc_url( $this->getEmptyCacheUrl() ),
-        ] );
+            'title' => \esc_html__('Empty all cache', 'wp-rest-api-cache'),
+            'href' => \esc_url($this->getEmptyCacheUrl()),
+        ]);
     }
 
     /**
      * Helper to check the request action.
      */
-    public function admin_action() {
+    public function adminAction()
+    {
         $this->requestCallback();
 
         $url = \wp_nonce_url(
             \add_query_arg(
-                [ self::NOTICE => 1 ],
-                \remove_query_arg( [ RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH ], \wp_get_referer() )
+                [self::NOTICE => 1],
+                \remove_query_arg(
+                    [RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH],
+                    \wp_get_referer()
+                )
             ),
             self::NONCE_ACTION,
             self::NONCE_NAME
         );
-        \wp_safe_redirect( $url );
+        \wp_safe_redirect($url);
         exit;
     }
 
     /**
      * Maybe add an admin notice.
      */
-    public function admin_notices() {
-        if ( ! empty( $_REQUEST[ self::NONCE_NAME ] ) &&
-            \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], self::NONCE_ACTION ) &&
-            ! empty( $_GET[ self::NOTICE ] ) &&
-            filter_var_int( $_GET[ self::NOTICE ] ) === 1
+    public function adminNotices()
+    {
+        if (! empty($_REQUEST[self::NONCE_NAME]) &&
+            \wp_verify_nonce($_REQUEST[self::NONCE_NAME], self::NONCE_ACTION) &&
+            ! empty($_GET[self::NOTICE]) &&
+            filter_var_int($_GET[self::NOTICE]) === 1
         ) {
-            $message = \esc_html__( 'The cache has been successfully cleared.', 'wp-rest-api-cache' );
+            $message = \esc_html__('The cache has been successfully cleared.', 'wp-rest-api-cache');
             echo "<div class='notice updated is-dismissible'><p>{$message}</p></div>"; // PHPCS: XSS OK.
         }
     }
@@ -127,9 +142,10 @@ class Admin implements WpHooksInterface {
     /**
      * Render the admin settings page.
      */
-    public function renderPage() {
+    public function renderPage()
+    {
         $this->requestCallback();
-        require_once \dirname( __FILE__ ) . '../../views/settings.php';
+        require_once \dirname(__FILE__) . '../../views/settings.php';
     }
 
     /**
@@ -138,11 +154,15 @@ class Admin implements WpHooksInterface {
      * @param null|string $key Option key value.
      * @return mixed
      */
-    public function getOptions( $key = null ) {
-        $options = \apply_filters( self::FILTER_CACHE_OPTIONS, \get_option( self::OPTION_KEY, $this->settings->getExpiration() ) );
+    public function getOptions($key = null)
+    {
+        $options = \apply_filters(
+            self::FILTER_CACHE_OPTIONS,
+            \get_option(self::OPTION_KEY, $this->settings->getExpiration())
+        );
 
-        if ( \is_string( $key ) && \array_key_exists( $key, $options ) ) {
-            return $options[ $key ];
+        if (\is_string($key) && \array_key_exists($key, $options)) {
+            return $options[$key];
         }
 
         return $options;
@@ -151,22 +171,23 @@ class Admin implements WpHooksInterface {
     /**
      * Helper to check the request action.
      */
-    private function requestCallback() {
+    private function requestCallback()
+    {
         $type = 'warning';
-        $message = \esc_html__( 'Nothing to see here.', 'wp-rest-api-cache' );
+        $message = \esc_html__('Nothing to see here.', 'wp-rest-api-cache');
 
-        if ( ! empty( $_REQUEST[ self::NONCE_NAME ] ) &&
-            \wp_verify_nonce( $_REQUEST[ self::NONCE_NAME ], 'rest_cache_options' )
+        if (! empty($_REQUEST[self::NONCE_NAME]) &&
+            \wp_verify_nonce($_REQUEST[self::NONCE_NAME], 'rest_cache_options')
         ) {
-            if ( ! empty( $_GET['rest_cache_empty'] ) &&
-                filter_var_int( $_GET['rest_cache_empty'] ) === 1
+            if (! empty($_GET['rest_cache_empty']) &&
+                filter_var_int($_GET['rest_cache_empty']) === 1
             ) {
-                if ( $this->wpCacheFlush() ) {
+                if ($this->wpCacheFlush()) {
                     $type = 'updated';
-                    $message = \esc_html__( 'The cache has been successfully cleared', 'wp-rest-api-cache' );
+                    $message = \esc_html__('The cache has been successfully cleared', 'wp-rest-api-cache');
                 } else {
                     $type = 'error';
-                    $message = \esc_html__( 'The cache is already empty', 'wp-rest-api-cache' );
+                    $message = \esc_html__('The cache is already empty', 'wp-rest-api-cache');
                 }
                 /**
                  * Action hook when the cache is flushed.
@@ -175,17 +196,17 @@ class Admin implements WpHooksInterface {
                  * @param string $type The settings error code.
                  * @param \WP_User The current user.
                  */
-                \do_action( self::ACTION_REQUEST_FLUSH_CACHE, $message, $type, \wp_get_current_user() );
-            } elseif ( isset( $_POST['rest_cache_options'] ) && ! empty( $_POST['rest_cache_options'] ) ) {
-                if ( $this->updateOptions( $_POST['rest_cache_options'] ) ) {
+                \do_action(self::ACTION_REQUEST_FLUSH_CACHE, $message, $type, \wp_get_current_user());
+            } elseif (isset($_POST['rest_cache_options']) && ! empty($_POST['rest_cache_options'])) {
+                if ($this->updateOptions($_POST['rest_cache_options'])) {
                     $type = 'updated';
-                    $message = \esc_html__( 'The cache time has been updated', 'wp-rest-api-cache' );
+                    $message = \esc_html__('The cache time has been updated', 'wp-rest-api-cache');
                 } else {
                     $type = 'error';
-                    $message = \esc_html__( 'The cache time has not been updated', 'wp-rest-api-cache' );
+                    $message = \esc_html__('The cache time has not been updated', 'wp-rest-api-cache');
                 }
             }
-            \add_settings_error( 'wp-rest-api-notice', \esc_attr( 'settings_updated' ), $message, $type );
+            \add_settings_error('wp-rest-api-notice', \esc_attr('settings_updated'), $message, $type);
         }
     }
 
@@ -195,13 +216,14 @@ class Admin implements WpHooksInterface {
      * @param array $options Incoming POST array.
      * @return bool
      */
-    private function updateOptions( array $options ) : bool {
+    private function updateOptions(array $options) : bool
+    {
         $options = \array_map(
             'sanitize_text_field',
-            \apply_filters( self::FILTER_CACHE_UPDATE_OPTIONS, $options )
+            \apply_filters(self::FILTER_CACHE_UPDATE_OPTIONS, $options)
         );
 
-        return \update_option( self::OPTION_KEY, $options, 'yes' );
+        return \update_option(self::OPTION_KEY, $options, 'yes');
     }
 
     /**
@@ -209,15 +231,16 @@ class Admin implements WpHooksInterface {
      *
      * @return string
      */
-    private function getEmptyCacheUrl() : string {
-        if ( \apply_filters( self::FILTER_SHOW_ADMIN_MENU, true ) ) {
+    private function getEmptyCacheUrl() : string
+    {
+        if (\apply_filters(self::FILTER_SHOW_ADMIN_MENU, true)) {
             return \wp_nonce_url(
                 \add_query_arg(
                     [
                         'page' => self::MENU_SLUG,
                         'rest_cache_empty' => '1',
                     ],
-                    \admin_url( 'options-general.php' )
+                    \admin_url('options-general.php')
                 ),
                 'rest_cache_options',
                 self::NONCE_NAME
@@ -230,7 +253,7 @@ class Admin implements WpHooksInterface {
                     'action' => self::ADMIN_ACTION,
                     'rest_cache_empty' => '1',
                 ],
-                \admin_url( 'admin.php' )
+                \admin_url('admin.php')
             ),
             'rest_cache_options',
             self::NONCE_NAME

@@ -15,7 +15,7 @@ To install this package, edit your `composer.json` file:
 ```js
 {
     "require": {
-        "dwnload/wp-rest-api-object-cache": "0.2"
+        "dwnload/wp-rest-api-object-cache": "^1.0"
     }
 }
 ```

@@ -1,14 +1,15 @@
-<?php declare( strict_types=1 );
+<?php declare(strict_types=1);
 
 namespace Dwnload\WpRestApi\WpAdmin;
 
-use TheFrosty\WP\Utils\Models\BaseModel;
+use TheFrosty\WpUtilities\Models\BaseModel;
 
 /**
  * Class Settings
  * @package Dwnload\WpRestApi\WpAdmin
  */
-class Settings extends BaseModel {
+class Settings extends BaseModel
+{
 
     const EXPIRATION = 'expiration';
     const LENGTH = 'length';
@@ -21,22 +22,24 @@ class Settings extends BaseModel {
      */
     protected $expiration;
 
-    public function getExpiration() : array {
+    public function getExpiration() : array
+    {
         return $this->expiration;
     }
 
     /**
      * @param int $length
      */
-    public function setLength( int $length ) {
-        $this->expiration[ self::EXPIRATION ][ self::LENGTH ] = $length;
-
+    public function setLength(int $length)
+    {
+        $this->expiration[self::EXPIRATION][self::LENGTH] = $length;
     }
 
     /**
      * @param int $period
      */
-    public function setPeriod( int $period ) {
-        $this->expiration[ self::EXPIRATION ][ self::PERIOD ] = $period;
+    public function setPeriod(int $period)
+    {
+        $this->expiration[self::EXPIRATION][self::PERIOD] = $period;
     }
 }
