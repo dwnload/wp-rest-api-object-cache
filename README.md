@@ -22,7 +22,7 @@ To install this package, edit your `composer.json` file:
 
 Now run:
 
-`$ composer install dwnload/wp-rest-api-cache`
+`$ composer install dwnload/wp-rest-api-object-cache`
 
 -----
 
