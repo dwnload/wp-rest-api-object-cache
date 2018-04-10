@@ -2,7 +2,7 @@
   "name": "dwnload/wp-rest-api-object-cache",
   "description": "Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.",
   "type": "wordpress-plugin",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "license": "MIT",
   "authors": [
     {
@@ -20,15 +20,9 @@
   "require-dev": {
     "10up/wp_mock": "dev-dev",
     "phpunit/phpunit": "6.*",
-    "wp-coding-standards/wpcs": "^0.13.1"
+    "squizlabs/php_codesniffer": "^3.2"
   },
   "scripts": {
-    "post-install-cmd": [
-      "@phpcs"
-    ],
-    "post-update-cmd": [
-      "@phpcs"
-    ],
     "phpcs": "./vendor/bin/phpcs --standard=PSR2 --extensions=php src",
     "test": "./vendor/bin/phpunit --colors",
     "export-coverage": "test-reporter"
@@ -41,7 +35,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Dwnload\\WpRestApi\\Tests\\": "tests"
+      "Dwnload\\WpRestApi\\Tests\\": "tests/unit"
     }
   }
 }
