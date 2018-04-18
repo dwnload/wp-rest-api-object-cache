@@ -15,7 +15,7 @@ To install this package, edit your `composer.json` file:
 ```js
 {
     "require": {
-        "dwnload/wp-rest-api-object-cache": "^1.0"
+        "dwnload/wp-rest-api-object-cache": "^1.0.3"
     }
 }
 ```
@@ -142,7 +142,7 @@ You can use the WordPress filter `save_post` if you would like to empty **ALL** 
 use Dwnload\WpRestApi\RestApi\RestDispatch;
 add_action( 'save_post', function( $post_id ) {
   if ( class_exists( RestDispatch::class ) ) {
-    call_user_func( [ ( new WpRestApiCache() )->getRestDispatch(), 'wpCacheFlush' ] );
+    call_user_func( [ ( WpRestApiCache::getRestDispatch(), 'wpCacheFlush' ] );
   }
 } );
 ```
