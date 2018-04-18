@@ -32,12 +32,6 @@ trait CacheApiTrait
         WP_REST_Request $request = null,
         string $url = null
     ) : string {
-        static $key;
-
-        if (\is_string($key)) {
-            return $key;
-        }
-
         if (! ($server instanceof WP_REST_Server)) {
             $server = \rest_get_server();
         }
@@ -52,9 +46,7 @@ trait CacheApiTrait
 
         // Be sure to remove our added cache refresh & cache delete queries.
         $uri = \remove_query_arg([RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH], $request_uri);
-        $key = filter_var_string(\apply_filters(RestDispatch::FILTER_API_KEY, $uri, $server, $request));
-
-        return $key;
+        return filter_var_string(\apply_filters(RestDispatch::FILTER_API_KEY, $uri, $server, $request));
     }
 
     /**
