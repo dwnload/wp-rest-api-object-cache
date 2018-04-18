@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.2 - 2018-04-18
+### Updated
+- Bumped [thefrosty/wp-utilities](https://github.com/thefrosty/wp-utilities/) to version 1.1.2
+which fixes `addOnHook` not executing when omitting a priority parameter less than 10.
+
 ## 1.0.1 - 2018-04-18
 ### Fixed
 - `addOnHook` expects a string value, not an object.

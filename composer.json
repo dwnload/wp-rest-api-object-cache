@@ -14,7 +14,7 @@
   ],
   "require": {
     "composer/installers": "~1.0",
-    "thefrosty/wp-utilities": "^1.1.1",
+    "thefrosty/wp-utilities": "^1.1.2",
     "php": ">=7.0.4"
   },
   "require-dev": {
