@@ -86,11 +86,10 @@ trait CacheApiTrait
      * Return the current REQUEST_URI from the global server variable.
      * Don't use `FILTER_SANITIZE_URL` since it will return false when 'http' isn't present.
      *
-     * @param string|null $route The request route.
      * @return string
      */
-    protected function getRequestUri(string $route = null) : string
+    protected function getRequestUri() : string
     {
-        return filter_var_string($route ?? $_SERVER['REQUEST_URI']);
+        return filter_var_string(wp_unslash($_SERVER['REQUEST_URI']));
     }
 }
