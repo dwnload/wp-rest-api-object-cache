@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.4 - 2018-04-19
+### Updated
+- `RestDispatch::preDispatch` should set the $request_uri from `CacheApiTrait::getRequestUri` and not use
+`WP_REST_Request::get_route` to avoid query parameters getting stripped out of the cache request.
+- `CacheApiTrait::getRequestUri` to sanitize the REQUEST_URI
+
+## 1.0.3 - 2018-04-18
+### Updated
+- Bumped [thefrosty/wp-utilities](https://github.com/thefrosty/wp-utilities/) to version 1.1.3
+
 ## 1.0.2 - 2018-04-18
 ### Updated
 - Bumped [thefrosty/wp-utilities](https://github.com/thefrosty/wp-utilities/) to version 1.1.2
