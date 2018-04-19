@@ -62,7 +62,7 @@ class RestDispatch implements WpHooksInterface
      */
     public function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
-        $request_uri = $request->get_route() ?? $this->getRequestUri();
+        $request_uri = $this->getRequestUri();
         $group = $this->getCacheGroup();
         $key = $this->getCacheKey($request_uri, $server, $request);
 
