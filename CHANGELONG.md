@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.0 - 2018-04-23
+### Updated
+- The admin settings page now works.
+- wp_cache_set expire from settings is used (if available).
+- Be sure to clean the URL queries after calls to avoid caching delete requests.
+- Make sure the cache flush button in the settings is invoked to show the URL.
+
 ## 1.0.4 - 2018-04-19
 ### Updated
 - `RestDispatch::preDispatch` should set the $request_uri from `CacheApiTrait::getRequestUri` and not use

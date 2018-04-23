@@ -42,8 +42,8 @@ class Admin implements WpHooksInterface
     public function __construct()
     {
         $this->settings = new Settings([
-            Settings::LENGTH => 1,
-            Settings::PERIOD => WEEK_IN_SECONDS,
+            Settings::LENGTH => 10,
+            Settings::PERIOD => MINUTE_IN_SECONDS,
         ]);
     }
 
@@ -52,15 +52,15 @@ class Admin implements WpHooksInterface
      */
     public function addHooks()
     {
-        if (\apply_filters(self::FILTER_SHOW_ADMIN, true)) {
-            if (\apply_filters(self::FILTER_SHOW_ADMIN_MENU, true)) {
+        if ($this->showAdmin()) {
+            if ($this->showAdminMenu()) {
                 $this->addAction('admin_menu', [$this, 'adminMenu']);
             } else {
                 $this->addAction('admin_action_' . self::ADMIN_ACTION, [$this, 'adminAction']);
                 $this->addAction('admin_notices', [$this, 'adminNotices']);
             }
 
-            if (\apply_filters(self::FILTER_SHOW_ADMIN_BAR_MENU, true)) {
+            if ($this->showAdminMenuBar()) {
                 $this->addAction('admin_bar_menu', [$this, 'adminBarMenu'], 999);
             }
         }
@@ -69,7 +69,7 @@ class Admin implements WpHooksInterface
     /**
      * Hook into the WordPress admin menu.
      */
-    public function adminMenu()
+    protected function adminMenu()
     {
         \add_submenu_page(
             'options-general.php',
@@ -86,7 +86,7 @@ class Admin implements WpHooksInterface
      *
      * @param WP_Admin_Bar $wp_admin_bar WP_Admin_Bar object.
      */
-    public function adminBarMenu(WP_Admin_Bar $wp_admin_bar)
+    protected function adminBarMenu(WP_Admin_Bar $wp_admin_bar)
     {
         $args = [
             'id' => WpRestApiCache::ID,
@@ -105,7 +105,7 @@ class Admin implements WpHooksInterface
     /**
      * Helper to check the request action.
      */
-    public function adminAction()
+    protected function adminAction()
     {
         $this->requestCallback();
 
@@ -127,7 +127,7 @@ class Admin implements WpHooksInterface
     /**
      * Maybe add an admin notice.
      */
-    public function adminNotices()
+    protected function adminNotices()
     {
         if (! empty($_REQUEST[self::NONCE_NAME]) &&
             \wp_verify_nonce($_REQUEST[self::NONCE_NAME], self::NONCE_ACTION) &&
@@ -142,10 +142,10 @@ class Admin implements WpHooksInterface
     /**
      * Render the admin settings page.
      */
-    public function renderPage()
+    protected function renderPage()
     {
         $this->requestCallback();
-        require_once \dirname(__FILE__) . '../../views/settings.php';
+        require_once \dirname(__FILE__) . '/../../views/settings.php';
     }
 
     /**
@@ -154,7 +154,7 @@ class Admin implements WpHooksInterface
      * @param null|string $key Option key value.
      * @return mixed
      */
-    public function getOptions($key = null)
+    protected function getOptions($key = null)
     {
         $options = \apply_filters(
             self::FILTER_CACHE_OPTIONS,
@@ -177,7 +177,7 @@ class Admin implements WpHooksInterface
         $message = \esc_html__('Nothing to see here.', 'wp-rest-api-cache');
 
         if (! empty($_REQUEST[self::NONCE_NAME]) &&
-            \wp_verify_nonce($_REQUEST[self::NONCE_NAME], 'rest_cache_options')
+            \wp_verify_nonce($_REQUEST[self::NONCE_NAME], 'rest_cache_options') !== false
         ) {
             if (! empty($_GET['rest_cache_empty']) &&
                 filter_var_int($_GET['rest_cache_empty']) === 1
@@ -197,7 +197,7 @@ class Admin implements WpHooksInterface
                  * @param \WP_User The current user.
                  */
                 \do_action(self::ACTION_REQUEST_FLUSH_CACHE, $message, $type, \wp_get_current_user());
-            } elseif (isset($_POST['rest_cache_options']) && ! empty($_POST['rest_cache_options'])) {
+            } elseif (! empty($_POST[self::OPTION_KEY])) {
                 if ($this->updateOptions($_POST['rest_cache_options'])) {
                     $type = 'updated';
                     $message = \esc_html__('The cache time has been updated', 'wp-rest-api-cache');
@@ -218,12 +218,10 @@ class Admin implements WpHooksInterface
      */
     private function updateOptions(array $options) : bool
     {
-        $options = \array_map(
-            'sanitize_text_field',
-            \apply_filters(self::FILTER_CACHE_UPDATE_OPTIONS, $options)
-        );
+        $this->settings->setLength(absint($options[Settings::EXPIRATION][Settings::LENGTH]));
+        $this->settings->setPeriod(absint($options[Settings::EXPIRATION][Settings::PERIOD]));
 
-        return \update_option(self::OPTION_KEY, $options, 'yes');
+        return \update_option(self::OPTION_KEY, $this->settings->getExpiration(), 'yes');
     }
 
     /**
@@ -233,7 +231,7 @@ class Admin implements WpHooksInterface
      */
     private function getEmptyCacheUrl() : string
     {
-        if (\apply_filters(self::FILTER_SHOW_ADMIN_MENU, true)) {
+        if ($this->showAdminMenu()) {
             return \wp_nonce_url(
                 \add_query_arg(
                     [
@@ -258,5 +256,32 @@ class Admin implements WpHooksInterface
             'rest_cache_options',
             self::NONCE_NAME
         );
+    }
+
+    /**
+     * Should the admin functions be shown?
+     * @return bool
+     */
+    private function showAdmin() : bool
+    {
+        return \apply_filters(self::FILTER_SHOW_ADMIN, true) === true;
+    }
+
+    /**
+     * Show the admin menu be shown?
+     * @return bool
+     */
+    private function showAdminMenu() : bool
+    {
+        return \apply_filters(self::FILTER_SHOW_ADMIN_MENU, true) === true;
+    }
+
+    /**
+     * Show the admin menu bar be shown?
+     * @return bool
+     */
+    private function showAdminMenuBar() : bool
+    {
+        return \apply_filters(self::FILTER_SHOW_ADMIN_BAR_MENU, true) === true;
     }
 }
