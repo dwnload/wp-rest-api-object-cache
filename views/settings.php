@@ -21,11 +21,11 @@ settings_errors(); ?>
 <div class="wrap">
     <h1><?php esc_html_e( 'WP REST API Cache', 'wp-rest-api-cache' ); ?></h1>
     <form action="" method="POST">
-        <?php wp_nonce_field( Admin::OPTION_KEY, Admin::NONCE_NAME ); ?>
+        <?php wp_nonce_field( 'rest_cache_options', Admin::NONCE_NAME ); ?>
         <table class="form-table">
             <tr>
                 <th scope="row"><?php esc_html_e( 'Empty all cache', 'wp-rest-api-cache' ); ?></th>
-                <td><a href="<?php echo esc_url( $cache_url ); ?>"
+                <td><a href="<?php echo esc_url( $cache_url->invoke( $this ) ); ?>"
                        class="button button-primary"><?php esc_html_e( 'empty cache', 'wp-rest-api-cache' ); ?></a></td>
             </tr>
             <tr>
