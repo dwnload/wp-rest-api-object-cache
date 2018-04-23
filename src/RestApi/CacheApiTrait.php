@@ -44,9 +44,7 @@ trait CacheApiTrait
             }
         }
 
-        // Be sure to remove our added cache refresh & cache delete queries.
-        $uri = \remove_query_arg([RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH], $request_uri);
-        return filter_var_string(\apply_filters(RestDispatch::FILTER_API_KEY, $uri, $server, $request));
+        return filter_var_string(\apply_filters(RestDispatch::FILTER_API_KEY, $request_uri, $server, $request));
     }
 
     /**
@@ -79,7 +77,23 @@ trait CacheApiTrait
      */
     protected function wpCacheDeleteByKey(string $key) : bool
     {
-        return \wp_cache_delete($key, $this->getCacheGroup());
+        return \wp_cache_delete($this->cleanKey($key), $this->getCacheGroup());
+    }
+
+    /**
+     * Clean the cache of query params that shouldn't be part of the string; like delete params.
+     *
+     * @param string $key
+     * @return string
+     */
+    protected function cleanKey(string $key) : string
+    {
+        $query_args = [
+            RestDispatch::QUERY_CACHE_DELETE,
+            RestDispatch::QUERY_CACHE_FORCE_DELETE,
+            RestDispatch::QUERY_CACHE_REFRESH,
+        ];
+        return \remove_query_arg($query_args, $key);
     }
 
     /**
