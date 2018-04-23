@@ -4,6 +4,8 @@ namespace Dwnload\WpRestApi\RestApi;
 
 use function Dwnload\WpRestApi\Helpers\filter_var_bool;
 use function Dwnload\WpRestApi\Helpers\filter_var_int;
+use Dwnload\WpRestApi\WpAdmin\Admin;
+use Dwnload\WpRestApi\WpAdmin\Settings;
 use Dwnload\WpRestApi\WpRestApiCache;
 use TheFrosty\WpUtilities\Plugin\HooksTrait;
 use TheFrosty\WpUtilities\Plugin\WpHooksInterface;
@@ -29,6 +31,7 @@ class RestDispatch implements WpHooksInterface
     const CACHE_HEADER_DELETE = 'X-WP-API-Cache-Delete';
     const FILTER_API_GROUP = WpRestApiCache::FILTER_PREFIX . 'group';
     const FILTER_API_KEY = WpRestApiCache::FILTER_PREFIX . 'key';
+    const FILTER_KEYS_NOT_ALLOWED = WpRestApiCache::FILTER_PREFIX . 'keys_not_allowed';
     const FILTER_ALLOWED_CACHE_STATUS = WpRestApiCache::FILTER_PREFIX . 'allowed_cache_status';
     const FILTER_CACHE_CONTROL_HEADERS = WpRestApiCache::FILTER_PREFIX . 'cache_control_headers';
     const FILTER_CACHE_EXPIRE = WpRestApiCache::FILTER_PREFIX . 'expire';
@@ -39,7 +42,7 @@ class RestDispatch implements WpHooksInterface
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
     const QUERY_CACHE_REFRESH = 'rest_cache_refresh';
 
-    const VERSION = '2.0.4';
+    const VERSION = '1.1.0';
 
     /**
      * Add class hooks.
@@ -60,7 +63,7 @@ class RestDispatch implements WpHooksInterface
      *
      * @return mixed Response
      */
-    public function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
+    protected function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
         $request_uri = $this->getRequestUri();
         $group = $this->getCacheGroup();
@@ -151,7 +154,7 @@ class RestDispatch implements WpHooksInterface
      *
      * @return WP_REST_Response
      */
-    public function postDispatch($response, WP_REST_Server $server, WP_REST_Request $request) : WP_REST_Response
+    protected function postDispatch($response, WP_REST_Server $server, WP_REST_Request $request) : WP_REST_Response
     {
         $request_uri = $this->getRequestUri();
         $key = $this->getCacheKey($request_uri, $server, $request);
@@ -197,11 +200,28 @@ class RestDispatch implements WpHooksInterface
         string $group,
         bool $force = false
     ) {
-        $result = \wp_cache_get($key, $group, $force);
+        $result = \wp_cache_get($this->cleanKey($key), $group, $force);
         if ($result === false) {
             $result = $this->dispatchRequest($server, $request);
-            $expire = \absint(\apply_filters(self::FILTER_CACHE_EXPIRE, (MINUTE_IN_SECONDS * 10)));
-            \wp_cache_set($key, $result, $group, $expire);
+            $defaults = [
+                Settings::EXPIRATION => [
+                    Settings::LENGTH => 10,
+                    Settings::PERIOD => MINUTE_IN_SECONDS,
+                ],
+            ];
+            $options = \get_option(Admin::OPTION_KEY, $defaults);
+            /**
+             * Filter for cache expiration time.
+             * @param int Expiration time.
+             * @param array Array of settings from the expiration length and period.
+             * @return int
+             */
+            $expire = \apply_filters(
+                self::FILTER_CACHE_EXPIRE,
+                ($options[Settings::EXPIRATION][Settings::PERIOD] * $options[Settings::EXPIRATION][Settings::LENGTH]),
+                $options[Settings::EXPIRATION]
+            );
+            \wp_cache_set($this->cleanKey($key), $result, $group, \absint($expire));
 
             return $result;
         }
