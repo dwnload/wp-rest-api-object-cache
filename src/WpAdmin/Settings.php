@@ -20,14 +20,19 @@ class Settings extends BaseModel
      *
      * @var array $expiration
      */
-    protected $expiration;
+    protected $expiration = [];
 
+    /**
+     * Get's the expiration settings array.
+     * @return array
+     */
     public function getExpiration() : array
     {
         return $this->expiration;
     }
 
     /**
+     * Sets the expiration length.
      * @param int $length
      */
     public function setLength(int $length)
@@ -36,6 +41,7 @@ class Settings extends BaseModel
     }
 
     /**
+     * Sets the expiration period.
      * @param int $period
      */
     public function setPeriod(int $period)
