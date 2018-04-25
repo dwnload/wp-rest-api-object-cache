@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.0 - 2018-04-25
+### Added
+- Added new method `RestDispatch::queryParamContextIsEdit`
+- Added new method `RestDispatch::isUserAuthenticated`.
+
+### Updated
+- `RestDispatch::isUserAuthenticated` uses a new filter `RestDispatch::FILTER_CACHE_VALIDATE_AUTH` to re-check requests containing `?context=edit` to avoid race conditions where a non-auth request returns results from cache.
+
 ## 1.1.1 - 2018-04-23
 ### Updated
 - Version bump for packagist.

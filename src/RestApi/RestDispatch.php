@@ -33,6 +33,7 @@ class RestDispatch implements WpHooksInterface
     const FILTER_API_KEY = WpRestApiCache::FILTER_PREFIX . 'key';
     const FILTER_KEYS_NOT_ALLOWED = WpRestApiCache::FILTER_PREFIX . 'keys_not_allowed';
     const FILTER_ALLOWED_CACHE_STATUS = WpRestApiCache::FILTER_PREFIX . 'allowed_cache_status';
+    const FILTER_CACHE_VALIDATE_AUTH = WpRestApiCache::FILTER_PREFIX . 'validate_auth';
     const FILTER_CACHE_CONTROL_HEADERS = WpRestApiCache::FILTER_PREFIX . 'cache_control_headers';
     const FILTER_CACHE_EXPIRE = WpRestApiCache::FILTER_PREFIX . 'expire';
     const FILTER_CACHE_HEADERS = WpRestApiCache::FILTER_PREFIX . 'headers';
@@ -42,7 +43,7 @@ class RestDispatch implements WpHooksInterface
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
     const QUERY_CACHE_REFRESH = 'rest_cache_refresh';
 
-    const VERSION = '1.1.0';
+    const VERSION = '1.2.0';
 
     /**
      * Add class hooks.
@@ -226,6 +227,14 @@ class RestDispatch implements WpHooksInterface
             return $result;
         }
 
+        /*
+         * Attempt to validate the user if `?context=edit` to avoid returning results for non-auth'd requests after
+         * a cached request from an authenticated request happens before cache flush.
+         */
+        if ($this->queryParamContextIsEdit($request) && ! $this->isUserAuthenticated($request)) {
+            return $this->dispatchRequest($server, $request);
+        }
+
         return $result;
     }
 
@@ -300,5 +309,38 @@ class RestDispatch implements WpHooksInterface
     {
         return \array_key_exists($key, $request->get_query_params()) &&
             filter_var_int($request->get_query_params()[$key]) === 1;
+    }
+
+    /**
+     * Validate the HTTP query param.
+     *
+     * @param WP_REST_Request $request
+     *
+     * @return bool
+     */
+    private function queryParamContextIsEdit(WP_REST_Request $request) : bool
+    {
+        return (
+            array_key_exists('context', $request->get_query_params()) &&
+            $request->get_query_params()['context'] === 'edit'
+        );
+    }
+
+    /**
+     * Apply a filter to allow user auth checks based on the $request headers.
+     * A great example here is to use the Basic Auth plugin and check for the global `$wp_json_basic_auth_error`
+     * is equal to true to validate the current request is an authenticated user.
+     *
+     * @param WP_REST_Request $request
+     *
+     * @return bool
+     */
+    private function isUserAuthenticated(WP_REST_Request $request) : bool
+    {
+        /**
+         * @param bool $authenticated Defaults to false, user needs to be authenticated.
+         * @param WP_REST_Request $request
+         */
+        return \apply_filters(self::FILTER_CACHE_VALIDATE_AUTH, false, $request) !== false;
     }
 }
