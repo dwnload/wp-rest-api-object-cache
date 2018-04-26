@@ -15,7 +15,7 @@ To install this package, edit your `composer.json` file:
 ```js
 {
     "require": {
-        "dwnload/wp-rest-api-object-cache": "^1.1.1"
+        "dwnload/wp-rest-api-object-cache": "^1.2.0"
     }
 }
 ```
@@ -71,6 +71,7 @@ Filters
 | Dwnload\WpRestApi\WpAdmin\Admin::FILTER_SHOW_ADMIN_MENU | boolean **$show** |
 | Dwnload\WpRestApi\WpAdmin\Admin::FILTER_SHOW_ADMIN_BAR_MENU | boolean **$show** |
 | Dwnload\WpRestApi\RestApi\RestDispatch::FILTER_ALLOWED_CACHE_STATUS | array **$status** HTTP Header statuses (defaults to `array( 200 )` |
+| Dwnload\WpRestApi\RestApi\RestDispatch::FILTER_CACHE_VALIDATE_AUTH | boolean **$authenticated**<br>WP_REST_Request $request |
 
 How to use filters
 ----
@@ -110,6 +111,21 @@ add_filter( Admin::FILTER_CACHE_OPTIONS, function( array $options ) : array {
 } );
 ```
 
+**Validating user auth when `?context=edit`**
+
+```php
+use Dwnload\WpRestApi\RestApi\RestDispatch;
+add_filter( RestDispatch::FILTER_CACHE_VALIDATE_AUTH, function( bool $auth, WP_REST_Request $request ) : bool {
+	// If you are running the Basic Auth plugin.
+	if ( $GLOBALS['wp_json_basic_auth_error'] === true ) {
+        $authorized = true;
+    }
+    // Otherwise, maybe do some additional logic on the request for current user...
+
+    return $authorized;
+}, 10, 2 );
+```
+
 **Skipping cache**
 
 ```php
@@ -145,4 +161,14 @@ add_action( 'save_post', function( $post_id ) {
     call_user_func( [ ( WpRestApiCache::getRestDispatch(), 'wpCacheFlush' ] );
   }
 } );
+```
+
+**Maybe better to use `transition_post_status`**
+
+```php
+add_action( 'transition_post_status', function(  string $new_status, string $old_status, \WP_Post $post ) {
+  if ( 'publish' === $new_status || 'publish' === $old_status ) {
+    \wp_cache_flush();
+  }
+}, 99, 3 );
 ```
