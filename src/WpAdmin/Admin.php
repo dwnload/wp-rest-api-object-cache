@@ -77,7 +77,7 @@ class Admin implements WpHooksInterface
             \esc_html__('REST API Cache', 'wp-rest-api-cache'),
             'manage_options',
             self::MENU_SLUG,
-            function() {
+            function () {
                 $this->renderPage();
             }
         );
