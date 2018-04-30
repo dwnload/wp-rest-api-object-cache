@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.1 - 2018-04-30
+### Updated
+- Fixes PHP Warning: call_user_func_array() expects parameter 1 to be a valid callback , cannot access protected method Dwnload\WpRestApi\WpAdmin\Admin::renderPage(). 
+
 ## 1.2.0 - 2018-04-25
 ### Added
 - Added new method `RestDispatch::queryParamContextIsEdit`
