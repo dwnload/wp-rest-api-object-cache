@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.2 - 2018-04-30
+### Fixed
+- When endpoints have multiple posts, the request bubbles up and appends the results which leads to a body size X's the
+requests. In other words, it's bad. This adds static property cache to break out of the possible loop.
+
 ## 1.2.1 - 2018-04-30
 ### Updated
 - Fixes PHP Warning: call_user_func_array() expects parameter 1 to be a valid callback , cannot access protected method Dwnload\WpRestApi\WpAdmin\Admin::renderPage(). 
