@@ -79,8 +79,7 @@ class RestDispatch implements WpHooksInterface
         $key = $this->getCacheKey($request_uri, $server, $request);
 
         // Return the result if it's a non-readable (GET) method or it's been cached.
-        if (
-            $request->get_method() !== WP_REST_Server::READABLE ||
+        if ($request->get_method() !== WP_REST_Server::READABLE ||
             (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true)
         ) {
             return $result;
@@ -235,7 +234,10 @@ class RestDispatch implements WpHooksInterface
                 $options[Settings::EXPIRATION]
             );
             self::$cached[$this->cleanKey($key)] = \wp_cache_set(
-                $this->cleanKey($key), $result, $group, \absint($expire)
+                $this->cleanKey($key),
+                $result,
+                $group,
+                \absint($expire)
             );
 
             return $result;
