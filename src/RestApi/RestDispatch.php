@@ -43,7 +43,15 @@ class RestDispatch implements WpHooksInterface
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
     const QUERY_CACHE_REFRESH = 'rest_cache_refresh';
 
-    const VERSION = '1.2.0';
+    const VERSION = '1.2.2';
+
+    /**
+     * Has the current request been cached? Avoids the multi loop calls where
+     * multiple objects are in one endpoint.
+     *
+     * @var bool[] $cached If the current requested dispatch has been cached.
+     */
+    private static $cached;
 
     /**
      * Add class hooks.
@@ -70,8 +78,11 @@ class RestDispatch implements WpHooksInterface
         $group = $this->getCacheGroup();
         $key = $this->getCacheKey($request_uri, $server, $request);
 
-        // Don't cache non-readable (GET) methods.
-        if ($request->get_method() !== WP_REST_Server::READABLE) {
+        // Return the result if it's a non-readable (GET) method or it's been cached.
+        if (
+            $request->get_method() !== WP_REST_Server::READABLE ||
+            (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true)
+        ) {
             return $result;
         }
 
@@ -202,6 +213,7 @@ class RestDispatch implements WpHooksInterface
         bool $force = false
     ) {
         $result = \wp_cache_get($this->cleanKey($key), $group, $force);
+        self::$cached[$this->cleanKey($key)] = $result !== false;
         if ($result === false) {
             $result = $this->dispatchRequest($server, $request);
             $defaults = [
@@ -222,7 +234,9 @@ class RestDispatch implements WpHooksInterface
                 ($options[Settings::EXPIRATION][Settings::PERIOD] * $options[Settings::EXPIRATION][Settings::LENGTH]),
                 $options[Settings::EXPIRATION]
             );
-            \wp_cache_set($this->cleanKey($key), $result, $group, \absint($expire));
+            self::$cached[$this->cleanKey($key)] = \wp_cache_set(
+                $this->cleanKey($key), $result, $group, \absint($expire)
+            );
 
             return $result;
         }
