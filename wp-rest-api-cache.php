@@ -19,7 +19,7 @@ use TheFrosty\WpUtilities\Plugin\PluginFactory;
 
 PluginFactory::create('rest-api-object-cache')
     ->addOnHook(RestDispatch::class)
-	->addOnHook(Admin::class)
+    ->addOnHook(Admin::class)
     ->initialize();
 
 call_user_func_array(
