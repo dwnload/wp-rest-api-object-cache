@@ -75,7 +75,7 @@ class Admin implements WpHooksInterface
             'options-general.php',
             \esc_html__('WP REST API Cache', 'wp-rest-api-cache'),
             \esc_html__('REST API Cache', 'wp-rest-api-cache'),
-            'manage_options',
+            'delete_users',
             self::MENU_SLUG,
             function () {
                 $this->renderPage();
@@ -90,12 +90,14 @@ class Admin implements WpHooksInterface
      */
     protected function adminBarMenu(WP_Admin_Bar $wp_admin_bar)
     {
-        $args = [
+        if (! is_user_logged_in() || ! current_user_can('delete_users') || ! is_admin_bar_showing()) {
+            return;
+        }
+
+        $wp_admin_bar->add_node([
             'id' => WpRestApiCache::ID,
             'title' => \esc_html__('REST API Cache', 'wp-rest-api-cache'),
-        ];
-
-        $wp_admin_bar->add_node($args);
+        ]);
         $wp_admin_bar->add_menu([
             'parent' => WpRestApiCache::ID,
             'id' => self::MENU_ID,
@@ -111,16 +113,12 @@ class Admin implements WpHooksInterface
     {
         $this->requestCallback();
 
-        $url = \wp_nonce_url(
-            \add_query_arg(
-                [self::NOTICE => 1],
-                \remove_query_arg(
-                    [RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH],
-                    \wp_get_referer()
-                )
-            ),
-            self::NONCE_ACTION,
-            self::NONCE_NAME
+        $url = \add_query_arg(
+            [self::NOTICE => 1],
+            \remove_query_arg(
+                [RestDispatch::QUERY_CACHE_DELETE, RestDispatch::QUERY_CACHE_REFRESH],
+                \wp_get_referer()
+            )
         );
         \wp_safe_redirect($url);
         exit;
@@ -131,9 +129,7 @@ class Admin implements WpHooksInterface
      */
     protected function adminNotices()
     {
-        if (! empty($_REQUEST[self::NONCE_NAME]) &&
-            \wp_verify_nonce($_REQUEST[self::NONCE_NAME], self::NONCE_ACTION) &&
-            ! empty($_GET[self::NOTICE]) &&
+        if (! empty($_GET[self::NOTICE]) &&
             filter_var_int($_GET[self::NOTICE]) === 1
         ) {
             $message = \esc_html__('The cache has been successfully cleared.', 'wp-rest-api-cache');
