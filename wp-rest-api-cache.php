@@ -4,7 +4,7 @@
  * Description: Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
  * Author: Austin Passy
  * Author URI: http://github.com/thefrosty
- * Version: 1.2.2
+ * Version: 1.2.3
  * Requires at least: 4.9
  * Tested up to: 4.9
  * Requires PHP: 7.0
