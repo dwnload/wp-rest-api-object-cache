@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.3 - 2018-05-30
+### Updated
+- Added permission check (`delete_users`) before adding admin bar node.
+- Change permission check on settings page from `manage_options` to `delete_users`.
+- Removed nonce check after successful cache flush for admin notice.
+
+### Added
+- PHP 7.2 to the Travis build.
+
 ## 1.2.2 - 2018-04-30
 ### Fixed
 - When endpoints have multiple posts, the request bubbles up and appends the results which leads to a body size X's the
