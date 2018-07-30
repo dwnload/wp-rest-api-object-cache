@@ -26,12 +26,13 @@ settings_errors(); ?>
             <tr>
                 <th scope="row"><?php esc_html_e( 'Empty all cache', 'wp-rest-api-cache' ); ?></th>
                 <td><a href="<?php echo esc_url( $cache_url->invoke( $this ) ); ?>"
+                       onclick="return confirm('This will clear ALL cache, continue?')"
                        class="button button-primary"><?php esc_html_e( 'empty cache', 'wp-rest-api-cache' ); ?></a></td>
             </tr>
             <tr>
                 <th scope="row"><?php esc_html_e( 'Cache time', 'wp-rest-api-cache' ); ?></th>
                 <td>
-                    <input type="number" id="fld-cache-time" min="1" style="width: 70px;"
+                    <input type="number" min="1" style="width: 70px;"
                            name="<?php printf( '%s[%s][%s]', Admin::OPTION_KEY, Settings::EXPIRATION, Settings::LENGTH ); ?>"
                            value="<?php echo absint( $options[ Settings::EXPIRATION ][ Settings::LENGTH ] ); ?>">
                     <?php $period = absint( $options[ Settings::EXPIRATION ][ Settings::PERIOD ] ); ?>
