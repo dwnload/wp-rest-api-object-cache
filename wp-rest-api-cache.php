@@ -4,7 +4,7 @@
  * Description: Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
  * Author: Austin Passy
  * Author URI: http://github.com/thefrosty
- * Version: 1.2.3
+ * Version: 1.3.0
  * Requires at least: 4.9
  * Tested up to: 4.9
  * Requires PHP: 7.0
@@ -17,10 +17,12 @@ use Dwnload\WpRestApi\RestApi\RestDispatch;
 use Dwnload\WpRestApi\WpAdmin\Admin;
 use TheFrosty\WpUtilities\Plugin\PluginFactory;
 
-PluginFactory::create('rest-api-object-cache')
-    ->addOnHook(RestDispatch::class)
-    ->addOnHook(Admin::class)
-    ->initialize();
+$plugin = PluginFactory::create('rest-api-object-cache');
+$plugin->addOnHook(RestDispatch::class, 'rest_api_init')->initialize();
+
+if (is_admin()) {
+    $plugin->add(new Admin())->initialize();
+}
 
 call_user_func_array(
     function ($filter) {
