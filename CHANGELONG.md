@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.3.0 - 2018-07-27
+### Updated
+- Removed the `helper.php` file.
+- Updated all the functions that were using the helper functions.
+- Update [thefrosty/wp-utilities](https://github.com/thefrosty/wp-utilities) to 1.2.2.
+- Fix save settings on admin page, (POST array key was incorrect).
+- Add confirm to clear all cache button on settings page.
+- Only load the Admin class in the admin.
+
+### Changed
+- Added a new capability (`manage_wp_rest_api_cache`) to view the settings page and/or admin bar which
+is (mapped to `delete_users`).
+- The `Dwnload\WpRestApi\RestApi\RestDispatch::FILTER_CACHE_EXPIRE` filters expire sanitize function was changed from
+`absint` to `inval` function to allow for zero and negative numbers.
+- Pass `is_admin_bar_showing()` into FILTER_SHOW_ADMIN_BAR_MENU.
+
+### Added
+- Added `wpCacheReplace()` to the `CacheApiTrait`.
+
 ## 1.2.3 - 2018-05-30
 ### Updated
 - Added permission check (`delete_users`) before adding admin bar node.
