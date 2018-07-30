@@ -2,7 +2,6 @@
 
 namespace Dwnload\WpRestApi\RestApi;
 
-use function Dwnload\WpRestApi\Helpers\filter_var_string;
 use WP_REST_Request;
 use WP_REST_Server;
 
@@ -44,7 +43,7 @@ trait CacheApiTrait
             }
         }
 
-        return filter_var_string(\apply_filters(RestDispatch::FILTER_API_KEY, $request_uri, $server, $request));
+        return $this->sanitize(\apply_filters(RestDispatch::FILTER_API_KEY, $request_uri, $server, $request));
     }
 
     /**
@@ -54,7 +53,7 @@ trait CacheApiTrait
      */
     protected function getCacheGroup() : string
     {
-        return filter_var_string(\apply_filters(RestDispatch::FILTER_API_GROUP, RestDispatch::CACHE_GROUP));
+        return $this->sanitize(\apply_filters(RestDispatch::FILTER_API_GROUP, RestDispatch::CACHE_GROUP));
     }
 
     /**
@@ -71,8 +70,20 @@ trait CacheApiTrait
     /**
      * Empty all cache.
      *
+     * @uses wp_cache_replace()
+     * @param string $key The key under which the value is stored.
+     * @return bool Returns TRUE on success or FALSE on failure.
+     */
+    protected function wpCacheReplace(string $key) : bool
+    {
+        return \wp_cache_replace($this->cleanKey($key), false, $this->getCacheGroup(), -1);
+    }
+
+    /**
+     * Empty all cache.
+     *
      * @uses wp_cache_delete()
-     * @param string $key The key under which to store the value.
+     * @param string $key The key under which the value is stored.
      * @return bool Returns TRUE on success or FALSE on failure.
      */
     protected function wpCacheDeleteByKey(string $key) : bool
@@ -104,6 +115,16 @@ trait CacheApiTrait
      */
     protected function getRequestUri() : string
     {
-        return filter_var_string(wp_unslash($_SERVER['REQUEST_URI']));
+        return $this->sanitize(\wp_unslash($_SERVER['REQUEST_URI']));
+    }
+
+    /**
+     * Sanitize incoming variables as a string value.
+     * @param mixed $variable
+     * @return string|false
+     */
+    private function sanitize($variable)
+    {
+        return \filter_var($variable, FILTER_SANITIZE_STRING);
     }
 }
