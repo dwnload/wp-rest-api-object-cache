@@ -12,10 +12,10 @@ Enable object caching for WordPress' REST API. Aids in increased response times 
 
 To install this package, edit your `composer.json` file:
 
-```js
+```json
 {
     "require": {
-        "dwnload/wp-rest-api-object-cache": "^1.2.0"
+        "dwnload/wp-rest-api-object-cache": "^1.3.0"
     }
 }
 ```

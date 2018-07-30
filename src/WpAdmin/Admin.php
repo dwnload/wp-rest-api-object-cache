@@ -2,7 +2,6 @@
 
 namespace Dwnload\WpRestApi\WpAdmin;
 
-use function Dwnload\WpRestApi\Helpers\filter_var_int;
 use Dwnload\WpRestApi\RestApi\CacheApiTrait;
 use Dwnload\WpRestApi\RestApi\RestDispatch;
 use Dwnload\WpRestApi\WpRestApiCache;
@@ -21,6 +20,7 @@ class Admin implements WpHooksInterface
 
     const ACTION_REQUEST_FLUSH_CACHE = WpRestApiCache::FILTER_PREFIX . 'request_flush_cache';
     const ADMIN_ACTION = WpRestApiCache::FILTER_PREFIX . 'flush';
+    const CAPABILITY = 'manage_wp_rest_api_cache';
     const FILTER_SHOW_ADMIN = WpRestApiCache::FILTER_PREFIX . 'show_admin';
     const FILTER_SHOW_ADMIN_BAR_MENU = WpRestApiCache::FILTER_PREFIX . 'show_admin_bar_menu';
     const FILTER_SHOW_ADMIN_MENU = WpRestApiCache::FILTER_PREFIX . 'show_admin_menu';
@@ -59,11 +59,33 @@ class Admin implements WpHooksInterface
                 $this->addAction('admin_action_' . self::ADMIN_ACTION, [$this, 'adminAction']);
                 $this->addAction('admin_notices', [$this, 'adminNotices']);
             }
-
             if ($this->showAdminMenuBar()) {
                 $this->addAction('admin_bar_menu', [$this, 'adminBarMenu'], 999);
             }
+            if ($this->showAdminMenu() || $this->showAdminMenuBar()) {
+                $this->addFilter('map_meta_cap', [$this, 'mapMetaCap'], 10, 2);
+            }
         }
+    }
+
+
+    /**
+     * Map `self::CAPABILITY` capability.
+     *
+     * @param array $caps Returns the user's actual capabilities.
+     * @param string $cap Capability name.
+     * @return array
+     */
+    protected function mapMetaCap(array $caps, string $cap) : array
+    {
+        // Map single-site cap check to 'manage_options'
+        if ($cap === self::CAPABILITY) {
+            if (! \is_multisite()) {
+                $caps = ['delete_users'];
+            }
+        }
+
+        return $caps;
     }
 
     /**
@@ -75,7 +97,7 @@ class Admin implements WpHooksInterface
             'options-general.php',
             \esc_html__('WP REST API Cache', 'wp-rest-api-cache'),
             \esc_html__('REST API Cache', 'wp-rest-api-cache'),
-            'delete_users',
+            self::CAPABILITY,
             self::MENU_SLUG,
             function () {
                 $this->renderPage();
@@ -90,7 +112,7 @@ class Admin implements WpHooksInterface
      */
     protected function adminBarMenu(WP_Admin_Bar $wp_admin_bar)
     {
-        if (! is_user_logged_in() || ! current_user_can('delete_users') || ! is_admin_bar_showing()) {
+        if (! \is_user_logged_in() || ! \current_user_can(self::CAPABILITY) || ! \is_admin_bar_showing()) {
             return;
         }
 
@@ -103,6 +125,9 @@ class Admin implements WpHooksInterface
             'id' => self::MENU_ID,
             'title' => \esc_html__('Empty all cache', 'wp-rest-api-cache'),
             'href' => \esc_url($this->getEmptyCacheUrl()),
+            'meta' => [
+                'onclick' => 'return confirm("This will clear ALL cache, continue?")'
+            ]
         ]);
     }
 
@@ -130,7 +155,7 @@ class Admin implements WpHooksInterface
     protected function adminNotices()
     {
         if (! empty($_GET[self::NOTICE]) &&
-            filter_var_int($_GET[self::NOTICE]) === 1
+            \filter_var($_GET[self::NOTICE], FILTER_VALIDATE_INT) === 1
         ) {
             $message = \esc_html__('The cache has been successfully cleared.', 'wp-rest-api-cache');
             echo "<div class='notice updated is-dismissible'><p>{$message}</p></div>"; // PHPCS: XSS OK.
@@ -178,7 +203,7 @@ class Admin implements WpHooksInterface
             \wp_verify_nonce($_REQUEST[self::NONCE_NAME], 'rest_cache_options') !== false
         ) {
             if (! empty($_GET['rest_cache_empty']) &&
-                filter_var_int($_GET['rest_cache_empty']) === 1
+                \filter_var($_GET['rest_cache_empty'], FILTER_VALIDATE_INT) === 1
             ) {
                 if ($this->wpCacheFlush()) {
                     $type = 'updated';
@@ -196,7 +221,7 @@ class Admin implements WpHooksInterface
                  */
                 \do_action(self::ACTION_REQUEST_FLUSH_CACHE, $message, $type, \wp_get_current_user());
             } elseif (! empty($_POST[self::OPTION_KEY])) {
-                if ($this->updateOptions($_POST['rest_cache_options'])) {
+                if ($this->updateOptions($_POST[self::OPTION_KEY])) {
                     $type = 'updated';
                     $message = \esc_html__('The cache time has been updated', 'wp-rest-api-cache');
                 } else {
@@ -280,6 +305,6 @@ class Admin implements WpHooksInterface
      */
     private function showAdminMenuBar() : bool
     {
-        return \apply_filters(self::FILTER_SHOW_ADMIN_BAR_MENU, true) === true;
+        return \apply_filters(self::FILTER_SHOW_ADMIN_BAR_MENU, \is_admin_bar_showing()) === true;
     }
 }

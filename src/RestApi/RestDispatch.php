@@ -2,8 +2,6 @@
 
 namespace Dwnload\WpRestApi\RestApi;
 
-use function Dwnload\WpRestApi\Helpers\filter_var_bool;
-use function Dwnload\WpRestApi\Helpers\filter_var_int;
 use Dwnload\WpRestApi\WpAdmin\Admin;
 use Dwnload\WpRestApi\WpAdmin\Settings;
 use Dwnload\WpRestApi\WpRestApiCache;
@@ -105,7 +103,7 @@ class RestDispatch implements WpHooksInterface
         }
 
         // Cache is refreshed (cached below).
-        $refresh = filter_var_bool($request->get_param(self::QUERY_CACHE_REFRESH));
+        $refresh = \filter_var($request->get_param(self::QUERY_CACHE_REFRESH), FILTER_VALIDATE_BOOLEAN);
         if ($refresh) {
             $server->send_header(
                 self::CACHE_HEADER,
@@ -128,8 +126,9 @@ class RestDispatch implements WpHooksInterface
             );
         }
 
-        $skip = filter_var_bool(
-            \apply_filters(self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request)
+        $skip = \filter_var(
+            \apply_filters(self::FILTER_CACHE_SKIP, WP_DEBUG, $request_uri, $server, $request),
+            FILTER_VALIDATE_BOOLEAN
         );
         if ($skip) {
             $server->send_header(
@@ -237,7 +236,7 @@ class RestDispatch implements WpHooksInterface
                 $this->cleanKey($key),
                 $result,
                 $group,
-                \absint($expire)
+                \intval($expire)
             );
 
             return $result;
@@ -324,7 +323,7 @@ class RestDispatch implements WpHooksInterface
     private function validateQueryParam(WP_REST_Request $request, string $key) : bool
     {
         return \array_key_exists($key, $request->get_query_params()) &&
-            filter_var_int($request->get_query_params()[$key]) === 1;
+            \filter_var($request->get_query_params()[$key], FILTER_VALIDATE_INT) === 1;
     }
 
     /**
@@ -336,10 +335,8 @@ class RestDispatch implements WpHooksInterface
      */
     private function queryParamContextIsEdit(WP_REST_Request $request) : bool
     {
-        return (
-            array_key_exists('context', $request->get_query_params()) &&
-            $request->get_query_params()['context'] === 'edit'
-        );
+        return \array_key_exists('context', $request->get_query_params()) &&
+            $request->get_query_params()['context'] === 'edit';
     }
 
     /**
