@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.3.1 2019-02-06
+### Updated
+- Added additional check for object on `site_transient_update_plugins` check.
+
 ## 1.3.0.1 2018-07-30
 ### Changed
 - Move the Admin class into an action hook on `after_setup_theme` to avoid conditional notices.

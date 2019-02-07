@@ -4,7 +4,7 @@
  * Description: Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
  * Author: Austin Passy
  * Author URI: http://github.com/thefrosty
- * Version: 1.3.0.1
+ * Version: 1.3.1
  * Requires at least: 4.9
  * Tested up to: 4.9
  * Requires PHP: 7.0
@@ -25,15 +25,10 @@ add_action('after_setup_theme', function () use ($plugin) {
     }
 });
 
-call_user_func_array(
-    function ($filter) {
-        add_filter($filter, function ($value) use ($filter) {
-            if (! empty($value->response) && array_key_exists(plugin_basename(__FILE__), $value->response)) {
-                unset($value->response[plugin_basename(__FILE__)]);
-            }
+add_filter('site_transient_update_plugins', function ($value) {
+    if (isset($value) && is_object($value) && (! empty($value->response) && is_array($value->response))) {
+        unset($value->response[@plugin_basename(__FILE__)]);
+    }
 
-            return $value;
-        });
-    },
-    ['pre_site_transient_update_plugins', 'site_transient_update_plugins']
-);
+    return $value;
+});
