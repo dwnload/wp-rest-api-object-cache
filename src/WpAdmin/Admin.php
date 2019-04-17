@@ -188,7 +188,7 @@ class Admin implements WpHooksInterface
     {
         $options = \apply_filters(
             self::FILTER_CACHE_OPTIONS,
-            \get_option(self::OPTION_KEY, $this->settings->getExpiration())
+            \get_option(self::OPTION_KEY, $this->settings->getSettings())
         );
 
         if (\is_string($key) && \array_key_exists($key, $options)) {
@@ -250,8 +250,9 @@ class Admin implements WpHooksInterface
     {
         $this->settings->setLength(absint($options[Settings::EXPIRATION][Settings::LENGTH]));
         $this->settings->setPeriod(absint($options[Settings::EXPIRATION][Settings::PERIOD]));
+        $this->settings->setBypass(!empty($options[Settings::BYPASS]) ? 'on' : 'off');
 
-        return \update_option(self::OPTION_KEY, $this->settings->getExpiration(), 'yes');
+        return \update_option(self::OPTION_KEY, $this->settings->getSettings(), 'yes');
     }
 
     /**

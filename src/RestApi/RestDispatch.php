@@ -36,7 +36,6 @@ class RestDispatch implements WpHooksInterface
     const FILTER_CACHE_EXPIRE = WpRestApiCache::FILTER_PREFIX . 'expire';
     const FILTER_CACHE_HEADERS = WpRestApiCache::FILTER_PREFIX . 'headers';
     const FILTER_CACHE_SKIP = WpRestApiCache::FILTER_PREFIX . 'skip';
-    const FILTER_CACHE_BYPASS = WpRestApiCache::FILTER_PREFIX . 'bypass';
     const HEADER_CACHE_CONTROL = 'Cache-Control';
     const QUERY_CACHE_DELETE = 'rest_cache_delete';
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
@@ -57,8 +56,11 @@ class RestDispatch implements WpHooksInterface
      */
     public function addHooks()
     {
-        $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
-        $this->addFilter('rest_post_dispatch', [$this, 'postDispatch'], 10, 3);
+        $options = $this->getOptions([]);
+        if (!isset($options[Settings::BYPASS]) || $options[Settings::BYPASS] !== 'on') {
+            $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
+            $this->addFilter('rest_post_dispatch', [$this, 'postDispatch'], 10, 3);
+        }
     }
 
     /**
@@ -73,7 +75,7 @@ class RestDispatch implements WpHooksInterface
      */
     protected function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
-        if ($result !== null || \apply_filters(self::FILTER_CACHE_BYPASS, false) === true) {
+        if ($result !== null) {
             return $result;
         }
         $request_uri = $this->getRequestUri();
@@ -230,7 +232,7 @@ class RestDispatch implements WpHooksInterface
                     Settings::PERIOD => MINUTE_IN_SECONDS,
                 ],
             ];
-            $options = \get_option(Admin::OPTION_KEY, $defaults);
+            $options = $this->getOptions($defaults);
             /**
              * Filter for cache expiration time.
              * @param int Expiration time.
@@ -366,5 +368,15 @@ class RestDispatch implements WpHooksInterface
          * @param WP_REST_Request $request
          */
         return \apply_filters(self::FILTER_CACHE_VALIDATE_AUTH, false, $request) !== false;
+    }
+
+    /**
+     * Get the options.
+     * @param mixed $defaults
+     * @return mixed
+     */
+    private function getOptions($defaults)
+    {
+        return \get_option(Admin::OPTION_KEY, $defaults);
     }
 }

@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 1.4 2019-04-17
 ### Added
-- Bypass cache filter, use `RestDispatch::FILTER_CACHE_BYPASS`
+- Bypass cache setting added.
 
 ## 1.3.2 2019-02-14
 ### Added
