@@ -118,7 +118,11 @@ class Admin implements WpHooksInterface
 
         $wp_admin_bar->add_node([
             'id' => WpRestApiCache::ID,
-            'title' => \esc_html__('REST API Cache', 'wp-rest-api-cache'),
+            'title' => \sprintf(
+                '<span class="ab-icon dashicons dashicons-shield" title="%s"></span><span class="ab-label">%s</span>',
+                \esc_attr__('REST API Cache', 'wp-rest-api-cache'),
+                \esc_html__('REST Cache', 'wp-rest-api-cache')
+            )
         ]);
         $wp_admin_bar->add_menu([
             'parent' => WpRestApiCache::ID,
@@ -126,7 +130,10 @@ class Admin implements WpHooksInterface
             'title' => \esc_html__('Empty all cache', 'wp-rest-api-cache'),
             'href' => \esc_url($this->getEmptyCacheUrl()),
             'meta' => [
-                'onclick' => 'return confirm("This will clear ALL cache, continue?")'
+                'onclick' => \sprintf(
+                    'return confirm("%s")',
+                    \esc_attr__('This will clear ALL cache, continue?', 'wp-rest-api-cache')
+                )
             ]
         ]);
     }
