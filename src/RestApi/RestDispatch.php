@@ -41,7 +41,7 @@ class RestDispatch implements WpHooksInterface
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
     const QUERY_CACHE_REFRESH = 'rest_cache_refresh';
 
-    const VERSION = '1.2.2';
+    const VERSION = '1.4.0';
 
     /**
      * Has the current request been cached? Avoids the multi loop calls where
@@ -56,8 +56,11 @@ class RestDispatch implements WpHooksInterface
      */
     public function addHooks()
     {
-        $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
-        $this->addFilter('rest_post_dispatch', [$this, 'postDispatch'], 10, 3);
+        $options = $this->getOptions([]);
+        if (!isset($options[Settings::BYPASS]) || $options[Settings::BYPASS] !== 'on') {
+            $this->addFilter('rest_pre_dispatch', [$this, 'preDispatch'], 10, 3);
+            $this->addFilter('rest_post_dispatch', [$this, 'postDispatch'], 10, 3);
+        }
     }
 
     /**
@@ -72,13 +75,22 @@ class RestDispatch implements WpHooksInterface
      */
     protected function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
+        if ($result !== null) {
+            return $result;
+        }
         $request_uri = $this->getRequestUri();
         $group = $this->getCacheGroup();
         $key = $this->getCacheKey($request_uri, $server, $request);
 
-        // Return the result if it's a non-readable (GET) method or it's been cached.
+        /*
+         * Return the result if:
+         * It's a non-readable (GET) method.
+         * It's been cached already.
+         * The request has an authorization header.
+         */
         if ($request->get_method() !== WP_REST_Server::READABLE ||
-            (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true)
+            (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true) ||
+            ! empty($request->get_header('authorization'))
         ) {
             return $result;
         }
@@ -220,7 +232,7 @@ class RestDispatch implements WpHooksInterface
                     Settings::PERIOD => MINUTE_IN_SECONDS,
                 ],
             ];
-            $options = \get_option(Admin::OPTION_KEY, $defaults);
+            $options = $this->getOptions($defaults);
             /**
              * Filter for cache expiration time.
              * @param int Expiration time.
@@ -247,6 +259,7 @@ class RestDispatch implements WpHooksInterface
          * a cached request from an authenticated request happens before cache flush.
          */
         if ($this->queryParamContextIsEdit($request) && ! $this->isUserAuthenticated($request)) {
+            \wp_cache_delete($this->cleanKey($key), $group);
             return $this->dispatchRequest($server, $request);
         }
 
@@ -355,5 +368,15 @@ class RestDispatch implements WpHooksInterface
          * @param WP_REST_Request $request
          */
         return \apply_filters(self::FILTER_CACHE_VALIDATE_AUTH, false, $request) !== false;
+    }
+
+    /**
+     * Get the options.
+     * @param mixed $defaults
+     * @return mixed
+     */
+    private function getOptions($defaults)
+    {
+        return \get_option(Admin::OPTION_KEY, $defaults);
     }
 }

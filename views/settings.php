@@ -56,6 +56,15 @@ settings_errors(); ?>
                 </td>
             </tr>
             <tr>
+                <th scope="row"><?php esc_html_e( 'Disable REST Cache', 'wp-rest-api-cache' ); ?></th>
+                <td>
+                    <input type="checkbox"
+                           name="<?php printf( '%s[%s]', Admin::OPTION_KEY, Settings::BYPASS ); ?>"
+                           value="on"<?php checked($options[Settings::BYPASS], 'on'); ?>>
+
+                </td>
+            </tr>
+            <tr>
                 <th scope="row">&nbsp;</th>
                 <td><input type="submit" class="button button-primary"
                            value="<?php esc_attr_e( 'save changes', 'wp-rest-api-cache' ); ?>"></td>

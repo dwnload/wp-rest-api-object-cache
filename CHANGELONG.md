@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.4 2019-04-17
+### Added
+- Bypass cache setting added.
+
+## 1.3.2 2019-02-14
+### Added
+- Bypass cache when authorization headers present.
+
 ## 1.3.1 2019-02-06
 ### Updated
 - Added additional check for object on `site_transient_update_plugins` check.

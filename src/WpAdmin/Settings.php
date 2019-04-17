@@ -11,24 +11,25 @@ use TheFrosty\WpUtilities\Models\BaseModel;
 class Settings extends BaseModel
 {
 
+    const BYPASS = 'bypass';
     const EXPIRATION = 'expiration';
     const LENGTH = 'length';
     const PERIOD = 'period';
 
     /**
-     * Settings expiration array.
+     * Settings array.
      *
-     * @var array $expiration
+     * @var array $settings
      */
-    protected $expiration = [];
+    protected $settings = [];
 
     /**
      * Get's the expiration settings array.
      * @return array
      */
-    public function getExpiration() : array
+    public function getSettings() : array
     {
-        return $this->expiration;
+        return $this->settings;
     }
 
     /**
@@ -37,7 +38,7 @@ class Settings extends BaseModel
      */
     public function setLength(int $length)
     {
-        $this->expiration[self::EXPIRATION][self::LENGTH] = $length;
+        $this->settings[self::EXPIRATION][self::LENGTH] = $length;
     }
 
     /**
@@ -46,6 +47,15 @@ class Settings extends BaseModel
      */
     public function setPeriod(int $period)
     {
-        $this->expiration[self::EXPIRATION][self::PERIOD] = $period;
+        $this->settings[self::EXPIRATION][self::PERIOD] = $period;
+    }
+
+    /**
+     * Sets the bypass value.
+     * @param string $value
+     */
+    public function setBypass(string $value)
+    {
+        $this->settings[self::BYPASS] = $value;
     }
 }
