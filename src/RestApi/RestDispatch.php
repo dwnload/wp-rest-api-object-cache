@@ -73,7 +73,7 @@ class RestDispatch implements WpHooksInterface
      */
     protected function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
-        if ( $result !== null || \apply_filters(self::FILTER_CACHE_BYPASS, false) === true ) {
+        if ($result !== null || \apply_filters(self::FILTER_CACHE_BYPASS, false) === true) {
             return $result;
         }
         $request_uri = $this->getRequestUri();
