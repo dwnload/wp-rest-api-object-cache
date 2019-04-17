@@ -36,12 +36,13 @@ class RestDispatch implements WpHooksInterface
     const FILTER_CACHE_EXPIRE = WpRestApiCache::FILTER_PREFIX . 'expire';
     const FILTER_CACHE_HEADERS = WpRestApiCache::FILTER_PREFIX . 'headers';
     const FILTER_CACHE_SKIP = WpRestApiCache::FILTER_PREFIX . 'skip';
+    const FILTER_CACHE_BYPASS = WpRestApiCache::FILTER_PREFIX . 'bypass';
     const HEADER_CACHE_CONTROL = 'Cache-Control';
     const QUERY_CACHE_DELETE = 'rest_cache_delete';
     const QUERY_CACHE_FORCE_DELETE = 'rest_force_delete';
     const QUERY_CACHE_REFRESH = 'rest_cache_refresh';
 
-    const VERSION = '1.2.2';
+    const VERSION = '1.4.0';
 
     /**
      * Has the current request been cached? Avoids the multi loop calls where
@@ -72,13 +73,22 @@ class RestDispatch implements WpHooksInterface
      */
     protected function preDispatch($result, WP_REST_Server $server, WP_REST_Request $request)
     {
+        if ( $result !== null || \apply_filters(self::FILTER_CACHE_BYPASS, false) === true ) {
+            return $result;
+        }
         $request_uri = $this->getRequestUri();
         $group = $this->getCacheGroup();
         $key = $this->getCacheKey($request_uri, $server, $request);
 
-        // Return the result if it's a non-readable (GET) method or it's been cached.
+        /*
+         * Return the result if:
+         * It's a non-readable (GET) method.
+         * It's been cached already.
+         * The request has an authorization header.
+         */
         if ($request->get_method() !== WP_REST_Server::READABLE ||
-            (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true)
+            (! empty(self::$cached[$this->cleanKey($key)]) && self::$cached[$this->cleanKey($key)] === true) ||
+            ! empty($request->get_header('authorization'))
         ) {
             return $result;
         }
@@ -247,6 +257,7 @@ class RestDispatch implements WpHooksInterface
          * a cached request from an authenticated request happens before cache flush.
          */
         if ($this->queryParamContextIsEdit($request) && ! $this->isUserAuthenticated($request)) {
+            \wp_cache_delete($this->cleanKey($key), $group);
             return $this->dispatchRequest($server, $request);
         }
 
