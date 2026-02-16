@@ -4,7 +4,6 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-object-cache)
 [![Total Downloads](https://img.shields.io/packagist/dt/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-object-cache)
 [![License](https://img.shields.io/packagist/l/dwnload/wp-rest-api-object-cache.svg)](https://packagist.org/packages/dwnload/wp-rest-api-object-cache)
-[![Build Status](https://travis-ci.org/dwnload/wp-rest-api-object-cache.svg?branch=master)](https://travis-ci.org/dwnload/wp-rest-api-object-cache)
 
 Enable object caching for WordPress' REST API. Aids in increased response times of your applications endpoints.
 
